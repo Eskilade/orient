@@ -19,6 +19,6 @@ macro(add_test name)
   )
 endmacro(add_test)
 
-#add_test(example src/simu.cpp)
-#add_test(aa2eu src/aa2eu.cpp)
+add_test(example src/simu.cpp)
+add_test(aa2eu src/aa2eu.cpp src/rodrigues.cpp)
 add_test(OptionalRef src/OptionalRef.cpp)
