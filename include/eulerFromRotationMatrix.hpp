@@ -7,7 +7,7 @@
 #include <OptionalRef.hpp>
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isTaitBryan<A1,A2,A3>(), int> = 0>
-Vect<3> rotationMatrixToEuler(Mat<3,3> const& R, OptionalRef<Mat<3,9>> H = {})
+Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R, OptionalRef<Mat<3,9>> H = {})
 {
   using T = TaitBryanTraits<A1,A2,A3>;
   if(H)
@@ -51,7 +51,7 @@ Vect<3> rotationMatrixToEuler(Mat<3,3> const& R, OptionalRef<Mat<3,9>> H = {})
 }
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isProperEuler<A1,A2,A3>(), int> = 0>
-Vect<3> rotationMatrixToEuler(Mat<3,3> const& R, OptionalRef<Mat<3,9>> H = {})
+Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R, OptionalRef<Mat<3,9>> H = {})
 {
   using T = ProperEulerTraits<A1,A2>; 
   if(H)
@@ -94,7 +94,7 @@ Vect<3> rotationMatrixToEuler(Mat<3,3> const& R, OptionalRef<Mat<3,9>> H = {})
 }
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isMalformed<A1,A2,A3>(), int> = 0>
-void rotationMatrixToEuler(Mat<3,3> const&)
+void eulerFromRotationMatrix(Mat<3,3> const&)
 {
   constexpr bool alwaysFalse = ( A1 != A1);
   static_assert( alwaysFalse, "Passed a malformed rotation sequence. Please choose either a propor euler sequence or a Tait-Bryan sequence");
