@@ -11,7 +11,7 @@ macro(add_test name)
   target_compile_options(${name} PUBLIC -Wall -Wextra -Wfloat-conversion)
   target_include_directories(${name} PUBLIC 
     include
-  	BOOST_INCLUDE_DIR
+
     GTSAM_INCLUDE_DIR
   )
   target_link_libraries(${name} PUBLIC
@@ -22,5 +22,6 @@ endmacro(add_test)
 #add_test(example src/simu.cpp)
 #add_test(aa2eu src/aa2eu.cpp src/rodrigues.cpp)
 #add_test(OptionalRef src/OptionalRef.cpp)
-add_test(testEulerFromRotationMatrix test/testEulerFromRotationMatrix.cpp)
-add_test(trigo test/testTrigo.cpp)
+#add_test(testEulerFromRotationMatrix test/testEulerFromRotationMatrix.cpp)
+add_test(fromQuaternion test/testFromQuaternion.cpp src/fromQuaternion.cpp)
+#add_test(trigo test/testTrigo.cpp)

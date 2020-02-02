@@ -86,3 +86,27 @@ Mat<3,3> toR(Vect<3> const& v)
 {
   return Rot<a1>::Mat(v[0]) * Rot<a2>::Mat(v[1]) * Rot<a3>::Mat(v[2]);
 }
+
+template<Axis axis>
+Mat<3,3> make_generator()
+{
+  Mat<3,3> M = Mat<3,3>::Zero();
+  if constexpr(axis == Axis::x){
+    M(1,2) = -1;
+    M(2,1) = 1;
+  }
+  else if constexpr(axis == Axis::y){
+    M(0,2) = 1;
+    M(2,0) = -1;
+  }
+  else {
+    M(0,1) = -1;
+    M(1,0) = 1;
+  }
+  return M;
+}
+
+template<Axis axis>
+static const auto generator = make_generator<axis>();
+
+

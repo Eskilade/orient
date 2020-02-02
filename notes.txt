@@ -1,0 +1,12 @@
+
+   quaternion <> aa
+         \       /
+          \     /
+           \   /
+            \ /
+             v
+             R
+             Î
+             |
+             |
+            euler

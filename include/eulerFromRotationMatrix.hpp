@@ -39,6 +39,8 @@ Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R, OptionalRef<Mat<3,9>> H = {})
       a2 =  - W.sign(T::a2s) * M_PI / 2.0;
       a1 =  - detail::atan2( W(TGL::a1s), W(TGL::a1c) );
       a3 = 0.;
+      if(H)
+          (*H) = Mat<3,9>::Constant(std::nan(""));
     }
   }
   else { // Gimbal lock. lone value ~= +1
@@ -46,6 +48,8 @@ Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R, OptionalRef<Mat<3,9>> H = {})
     a2 =  W.sign(T::a2s) * M_PI / 2.0;
     a1 =  detail::atan2( W(TGL::a1s), W(TGL::a1c) );
     a3 = 0.;
+    if(H)
+        (*H) = Mat<3,9>::Constant(std::nan(""));
   }
   return (Vect<3>() << a1,a2,a3).finished();
 }
@@ -82,6 +86,8 @@ Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R, OptionalRef<Mat<3,9>> H = {})
       a2 =  M_PI;
       a1 =  - detail::atan2( W(TGL::a1s), W(TGL::a1c) );
       a3 = 0.;
+      if(H)
+          (*H) = Mat<3,9>::Constant(std::nan(""));
     }
   }
   else { // Gimbal lock. lone value ~= +1
@@ -89,6 +95,8 @@ Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R, OptionalRef<Mat<3,9>> H = {})
     a2 =  0.0;
     a1 =  detail::atan2( W(TGL::a1s), W(TGL::a1c) );
     a3 = 0.;
+    if(H)
+        (*H) = Mat<3,9>::Constant(std::nan(""));
   }
   return (Vect<3>() << a1,a2,a3).finished();
 }
