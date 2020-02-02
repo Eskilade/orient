@@ -1,5 +1,6 @@
 #include <fromQuaternion.hpp>
 #include <common.hpp>
+#include <trigonometric_derivatives.hpp>
 
 template<int I>
 Mat<3,3> rotFromQuatDer(Vect<4> const& q)
@@ -48,23 +49,20 @@ Vect<3> angleAxisFromQuaternion(Vect<4> const& q, OptionalRef<Mat<3,4>> H )
   if( n < std::numeric_limits<double>::epsilon()){
     if(H)
       *H = Mat<3,4>::Constant(std::nan(""));
-    return Vect<3>::Constant(std::nan(""));
   }
   double w = q[0];
   Vect<3> v = q.segment<3>(1);
   double nv = std::sqrt(v.dot(v));
-  return 2 * v * std::atan2(nv, w)/ nv;
+  Mat<1,1> aHnv, aHw;
+  const auto a =  detail::atan2(nv, w, aHnv, aHw);
+  const auto aa = 2 * v * a / nv;
+  if(H){
+    const Mat<1,3> nvHv = v.transpose() / nv;
+    H->block<3,1>(0,0) = 2 * v * aHw / nv;
+    H->block<3,3>(0,1) = 
+      2 * v * aHnv * nvHv / nv
+      - 2 * a * gtsam::skewSymmetric(v) * gtsam::skewSymmetric(v) / (nv*nv*nv);
+  }
+
+  return aa;
 }
-//  if (q[0] > 1) q1.normalise(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
-//  angle = 2 * Math.acos(q1.w);
-//  double s = Math.sqrt(1-q1.w*q1.w); // assuming quaternion normalised then w is less than 1, so term always positive.
-//  if (s < 0.001) { // test to avoid divide by zero, s is always positive due to sqrt
-//    // if s close to zero then direction of axis not important
-//    x = q1.x; // if it is important that axis is normalised then replace with x=1; y=z=0;
-//    y = q1.y;
-//    z = q1.z;
-//  } else {
-//    x = q1.x / s; // normalise axis
-//    y = q1.y / s;
-//    z = q1.z / s;
-//  }

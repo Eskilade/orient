@@ -65,12 +65,23 @@ TEST_CASE("angleAxisFromQuaternion")
   Eigen::AngleAxisd eaa{rand}; 
   Vect<3> expected = eaa.angle() * eaa.axis();
   Vect<3> actual = angleAxisFromQuaternion(q);
-  std::cout << (normalize(expected)).transpose() << "\n\n";
-  std::cout << (normalize(actual)).transpose() << "\n\n";
 
   Mat<3,3> eR = gtsam::Rot3::Rodrigues(expected).matrix();
   Mat<3,3> aR = gtsam::Rot3::Rodrigues(actual).matrix();
-  std::cout << eR << "\n\n";
-  std::cout << aR << "\n\n";
-  std::cout << eR - aR << "\n\n";
+  CHECK( aR.isApprox( eR) );
 }
+
+TEST_CASE("angleAxisFromQuaternion_derivative")
+{
+  auto wrap = boost::function<Vect<3>(Vect<4> const&)>{[](auto&& ... args){
+    return angleAxisFromQuaternion(std::forward<decltype(args)>(args) ... );
+  }};
+
+  Vect<4> unq = Vect<4>::Random();
+  auto num = numericalDerivative11(wrap, unq);
+  Mat<3, 4> calc;
+  angleAxisFromQuaternion(unq, calc);
+  CHECK( calc.isApprox( num, 1e-9) );
+}
+
+

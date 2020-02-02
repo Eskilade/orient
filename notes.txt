@@ -1,12 +1,8 @@
 
-   quaternion <> aa
-         \       /
-          \     /
-           \   /
-            \ /
-             v
-             R
-             Î
-             |
-             |
-            euler
+quaternion <> aa
+          \   /
+           \ /
+            v
+            R
+            |
+          euler
