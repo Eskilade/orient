@@ -2,7 +2,7 @@
 #include <detail/trigonometric_derivatives.hpp>
 
 template<Axis axis>
-Mat<3,3> rodriguesDerivative(Vect<3> const& aa)
+Mat<3,3> rodriguesDerivative(Eigen::Vector3d const& aa)
 {
   const auto t2 = aa.dot(aa);
   if (t2 < std::numeric_limits<double>::epsilon()) {
@@ -20,7 +20,7 @@ Mat<3,3> rodriguesDerivative(Vect<3> const& aa)
   }
 }
 
-Mat<3,3> rodrigues(Vect<3> const& aa)
+Mat<3,3> rodrigues(Eigen::Vector3d const& aa)
 {
   const auto t2 = aa.dot(aa);
   if (t2 < std::numeric_limits<double>::epsilon()) {
@@ -35,12 +35,12 @@ Mat<3,3> rodrigues(Vect<3> const& aa)
   }
 }
 
-Mat<3,3> rotationMatrixFromAngleAxis(Vect<3> const& aa)
+Mat<3,3> rotationMatrixFromAngleAxis(Eigen::Vector3d const& aa)
 {
   return rodrigues(aa);
 }
 
-Mat<3,3> rotationMatrixFromAngleAxis(Vect<3> const& aa, Eigen::Ref<Mat<9,3>> H)
+Mat<3,3> rotationMatrixFromAngleAxis(Eigen::Vector3d const& aa, Eigen::Ref<Mat<9,3>> H)
 {
   Eigen::Map<Mat<3,3>>(H.block<9,1>(0,0).data(), 3,3) = rodriguesDerivative<Axis::x>(aa);
   Eigen::Map<Mat<3,3>>(H.block<9,1>(0,1).data(), 3,3) = rodriguesDerivative<Axis::y>(aa);
@@ -48,27 +48,27 @@ Mat<3,3> rotationMatrixFromAngleAxis(Vect<3> const& aa, Eigen::Ref<Mat<9,3>> H)
   return rotationMatrixFromAngleAxis(aa);
 }
 
-Vect<4> quaternionFromAngleAxis(Vect<3> const& aa)
+Eigen::Vector4d quaternionFromAngleAxis(Eigen::Vector3d const& aa)
 {
   const auto angle = std::sqrt(aa.dot(aa));
-  const Vect<3> axis = aa / angle; 
+  const Eigen::Vector3d axis = aa / angle; 
   const auto ha = angle/2;
   const auto qw = std::cos(ha);
-  Vect<3> vec = std::sin(ha) * axis;
-  return (Vect<4>() << qw, vec).finished();
+  Eigen::Vector3d vec = std::sin(ha) * axis;
+  return (Eigen::Vector4d() << qw, vec).finished();
 }
 
-Vect<4> quaternionFromAngleAxis(Vect<3> const& aa, Eigen::Ref<Mat<4,3>> H)
+Eigen::Vector4d quaternionFromAngleAxis(Eigen::Vector3d const& aa, Eigen::Ref<Mat<4,3>> H)
 {
   const auto angle = std::sqrt(aa.dot(aa));
   Mat<3,3> axisHaa;
-  const Vect<3> axis = normalize<3>(aa, axisHaa);
+  const Eigen::Vector3d axis = normalize<3>(aa, axisHaa);
   const auto ha = angle/2;
   const auto cha = std::cos(ha);
   const auto sha = std::sin(ha);
   const auto& qw = cha;
   H.block<1,3>(0,0) = - sha * axis.transpose() / 2;
-  Vect<3> vec = sha * axis;
+  Eigen::Vector3d vec = sha * axis;
   H.block<3,3>(1,0) = axis * axis.transpose() * cha / 2 + sha * axisHaa;
-  return (Vect<4>() << qw, vec).finished();
+  return (Eigen::Vector4d() << qw, vec).finished();
 }

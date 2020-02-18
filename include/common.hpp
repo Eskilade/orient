@@ -6,9 +6,6 @@
 template<int R, int C>
 using Mat = Eigen::Matrix<double, R, C>;
 
-template<int R>
-using Vect = Eigen::Matrix<double, R, 1>;
-
 enum class Axis{x=0,y=1,z=2};
 
 template<Axis a1, Axis a2>
@@ -49,9 +46,9 @@ inline Mat<3,3> skew(const Eigen::MatrixBase<Derived>& w) {
 }
 
 template <class Derived>
-inline Vect<3> vectorFromSkewSymmetric(const Eigen::MatrixBase<Derived>& M)
+inline Eigen::Vector3d vectorFromSkewSymmetric(const Eigen::MatrixBase<Derived>& M)
 {
-  return (Vect<3>() << - M(1,2), M(0,2), - M(0,1)).finished();
+  return (Eigen::Vector3d() << - M(1,2), M(0,2), - M(0,1)).finished();
 }
 
 struct Elem 
@@ -97,7 +94,7 @@ MakeRotMat(y);
 MakeRotMat(z);
 
 template<Axis a1, Axis a2, Axis a3>
-Mat<3,3> toR(Vect<3> const& v)
+Mat<3,3> toR(Eigen::Vector3d const& v)
 {
   return Rot<a1>::Mat(v[0]) * Rot<a2>::Mat(v[1]) * Rot<a3>::Mat(v[2]);
 }
@@ -125,22 +122,22 @@ template<Axis axis>
 static const auto generator = make_generator<axis>();
 
 template<int N>
-Vect<N> normalize(Vect<N> const& v)
+Eigen::Matrix<double, N, 1> normalize(Eigen::Matrix<double, N, 1> const& v)
 {
   double n2 = v.dot(v);
   if( n2 < std::numeric_limits<double>::epsilon())
-    return Vect<N>::Constant(std::nan(""));
+    return Eigen::Matrix<double, N, 1>::Constant(std::nan(""));
   double n = std::sqrt(n2);
   return v / n;
 }
 
 template<int N>
-Vect<N> normalize(Vect<N> const& v, Eigen::Ref<Mat<N,N>> H)
+Eigen::Matrix<double, N, 1> normalize(Eigen::Matrix<double, N, 1> const& v, Eigen::Ref<Mat<N,N>> H)
 {
   double n2 = v.dot(v);
   if( n2 < std::numeric_limits<double>::epsilon()){
     H = Mat<N,N>::Constant(std::nan(""));
-    return Vect<N>::Constant(std::nan(""));
+    return Eigen::Matrix<double, N, 1>::Constant(std::nan(""));
   }
   double n = std::sqrt(n2);
   H = - v * v.transpose() / ( n * n2) + Mat<N,N>::Identity() * 1.0 / n;

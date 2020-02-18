@@ -6,7 +6,7 @@
 #include <detail/trigonometric_derivatives.hpp>
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isTaitBryan<A1,A2,A3>(), int> = 0>
-Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R)
+Eigen::Vector3d eulerFromRotationMatrix(Mat<3,3> const& R)
 {
   using T = TaitBryanTraits<A1,A2,A3>;
   const auto W = Wrap{R};
@@ -32,11 +32,11 @@ Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R)
     a1 =  detail::atan2( W(TGL::a1s), W(TGL::a1c) );
     a3 = 0.;
   }
-  return (Vect<3>() << a1,a2,a3).finished();
+  return (Eigen::Vector3d() << a1,a2,a3).finished();
 }
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isTaitBryan<A1,A2,A3>(), int> = 0>
-Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R, Eigen::Ref<Mat<3,9>> H)
+Eigen::Vector3d eulerFromRotationMatrix(Mat<3,3> const& R, Eigen::Ref<Mat<3,9>> H)
 {
   using T = TaitBryanTraits<A1,A2,A3>;
   H = Mat<3,9>::Zero();
@@ -77,11 +77,11 @@ Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R, Eigen::Ref<Mat<3,9>> H)
     a3 = 0.;
     H = Mat<3,9>::Constant(std::nan(""));
   }
-  return (Vect<3>() << a1,a2,a3).finished();
+  return (Eigen::Vector3d() << a1,a2,a3).finished();
 }
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isProperEuler<A1,A2,A3>(), int> = 0>
-Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R)
+Eigen::Vector3d eulerFromRotationMatrix(Mat<3,3> const& R)
 {
   using T = ProperEulerTraits<A1,A2>; 
   const auto W = Wrap{R};
@@ -107,11 +107,11 @@ Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R)
     a1 =  detail::atan2( W(TGL::a1s), W(TGL::a1c) );
     a3 = 0.;
   }
-  return (Vect<3>() << a1,a2,a3).finished();
+  return (Eigen::Vector3d() << a1,a2,a3).finished();
 }
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isProperEuler<A1,A2,A3>(), int> = 0>
-Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R, Eigen::Ref<Mat<3,9>> H)
+Eigen::Vector3d eulerFromRotationMatrix(Mat<3,3> const& R, Eigen::Ref<Mat<3,9>> H)
 {
   using T = ProperEulerTraits<A1,A2>; 
   H = Mat<3,9>::Zero();
@@ -149,7 +149,7 @@ Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R, Eigen::Ref<Mat<3,9>> H)
     a3 = 0.;
     H = Mat<3,9>::Constant(std::nan(""));
   }
-  return (Vect<3>() << a1,a2,a3).finished();
+  return (Eigen::Vector3d() << a1,a2,a3).finished();
 }
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isMalformed<A1,A2,A3>(), int> = 0>

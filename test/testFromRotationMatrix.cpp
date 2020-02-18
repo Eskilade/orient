@@ -19,78 +19,78 @@ using namespace gtsam;
 
 TEST_CASE("angleAxisFromRotationMatrix")
 {
-  Vect<3> aa;
+  Eigen::Vector3d aa;
   SECTION("Random"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
   }
   SECTION("half_PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= M_PI / (2*std::sqrt(aa.dot(aa)));
   }
   SECTION("minus_half_PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= -M_PI / (2*std::sqrt(aa.dot(aa)));
   }
   SECTION("PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= M_PI / std::sqrt(aa.dot(aa));
   }
   SECTION("minus_PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= -M_PI / std::sqrt(aa.dot(aa));
   }
   SECTION("2PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= 2*M_PI / std::sqrt(aa.dot(aa));
   }
   SECTION("minus_2PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= -2*M_PI / std::sqrt(aa.dot(aa));
   }
 
   Mat<3,3> R = gtsam::Rot3::Rodrigues(aa).matrix();
   Eigen::AngleAxisd eaa{R};
-  Vect<3> expected = eaa.angle() * eaa.axis();
-  const Vect<3> actual = angleAxisFromRotationMatrix(R);
+  Eigen::Vector3d expected = eaa.angle() * eaa.axis();
+  const Eigen::Vector3d actual = angleAxisFromRotationMatrix(R);
   std::cout << expected.transpose() << "\n";
   std::cout << actual.transpose() << "\n";
 }
 
 TEST_CASE("quaternionFromRotationMatrix")
 {
-  Vect<3> aa;
+  Eigen::Vector3d aa;
   SECTION("Random"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
   }
   SECTION("half_PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= M_PI / (2*std::sqrt(aa.dot(aa)));
   }
   SECTION("minus_half_PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= -M_PI / (2*std::sqrt(aa.dot(aa)));
   }
   SECTION("PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= M_PI / std::sqrt(aa.dot(aa));
   }
   SECTION("minus_PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= -M_PI / std::sqrt(aa.dot(aa));
   }
   SECTION("2PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= 2*M_PI / std::sqrt(aa.dot(aa));
   }
   SECTION("minus_2PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= -2*M_PI / std::sqrt(aa.dot(aa));
   }
 
   Mat<3,3> R = gtsam::Rot3::Rodrigues(aa).matrix();
   Eigen::Quaterniond equat{R};
-  Vect<4> expected = (Vect<4>() << equat.w(), equat.vec()).finished();
-  const Vect<4> actual = quaternionFromRotationMatrix(R);
+  Eigen::Vector4d expected = (Eigen::Vector4d() << equat.w(), equat.vec()).finished();
+  const Eigen::Vector4d actual = quaternionFromRotationMatrix(R);
   std::cout << expected.transpose() << "\n";
   std::cout << actual.transpose() << "\n";
   std::cout << "-----\n";

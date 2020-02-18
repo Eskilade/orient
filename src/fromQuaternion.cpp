@@ -3,7 +3,7 @@
 #include <detail/trigonometric_derivatives.hpp>
 
 template<int I>
-Mat<3,3> rotFromQuatDer(Vect<4> const& q)
+Mat<3,3> rotFromQuatDer(Eigen::Vector4d const& q)
 {
   double n = q.dot(q);
   double s = 1.0 / n;
@@ -18,7 +18,7 @@ Mat<3,3> rotFromQuatDer(Vect<4> const& q)
 }
 
 template<>
-Mat<3,3> rotFromQuatDer<0>(Vect<4> const& q)
+Mat<3,3> rotFromQuatDer<0>(Eigen::Vector4d const& q)
 {
   double n = q.dot(q);
   double s = 1.0 / n;
@@ -29,14 +29,14 @@ Mat<3,3> rotFromQuatDer<0>(Vect<4> const& q)
            2*s*X;
 }
 
-Mat<3,3> rotationMatrixFromQuaternion(Vect<4> const& q)
+Mat<3,3> rotationMatrixFromQuaternion(Eigen::Vector4d const& q)
 {
   double s = 1 / q.dot(q);
   Mat<3,3> X = gtsam::skewSymmetric(q.segment<3>(1));
   return Mat<3,3>::Identity() + 2 * s * X * X + 2*s*q[0]*X;
 } 
  
-Mat<3,3> rotationMatrixFromQuaternion(Vect<4> const& q, Eigen::Ref<Mat<9,4>> H)
+Mat<3,3> rotationMatrixFromQuaternion(Eigen::Vector4d const& q, Eigen::Ref<Mat<9,4>> H)
 {
   Eigen::Map<Mat<3,3>>(H.block<9,1>(0,0).data(), 3,3) = rotFromQuatDer<0>(q);
   Eigen::Map<Mat<3,3>>(H.block<9,1>(0,1).data(), 3,3) = rotFromQuatDer<1>(q);
@@ -45,24 +45,23 @@ Mat<3,3> rotationMatrixFromQuaternion(Vect<4> const& q, Eigen::Ref<Mat<9,4>> H)
   return rotationMatrixFromQuaternion(q);
 } 
 
-Vect<3> angleAxisFromQuaternion(Vect<4> const& q)
+Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q)
 {
-  double n = q.dot(q);
   double w = q[0];
-  Vect<3> v = q.segment<3>(1);
+  Eigen::Vector3d v = q.segment<3>(1);
   double nv = std::sqrt(v.dot(v));
   const auto a =  detail::atan2(nv, w);
   return 2 * v * a / nv;
 }
 
-Vect<3> angleAxisFromQuaternion(Vect<4> const& q, Eigen::Ref<Mat<3,4>> H )
+Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q, Eigen::Ref<Mat<3,4>> H )
 {
   double n = q.dot(q);
   if( n < std::numeric_limits<double>::epsilon()){
     H = Mat<3,4>::Constant(std::nan(""));
   }
   double w = q[0];
-  Vect<3> v = q.segment<3>(1);
+  Eigen::Vector3d v = q.segment<3>(1);
   double nv = std::sqrt(v.dot(v));
   double aHnv, aHw;
   const auto a =  detail::atan2(nv, w, aHnv, aHw);

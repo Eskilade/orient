@@ -16,7 +16,7 @@ using namespace gtsam;
 
 TEST_CASE("rotationMatrixFromQuaternion"){
   Eigen::Quaterniond rand = Eigen::Quaterniond::UnitRandom();
-  Vect<4> q;
+  Eigen::Vector4d q;
   q << rand.w(), rand.x(), rand.y(), rand.z();
   Mat<3,3> expected = rand.toRotationMatrix();
   Mat<3,3> actual = rotationMatrixFromQuaternion(q);
@@ -25,12 +25,12 @@ TEST_CASE("rotationMatrixFromQuaternion"){
 
 TEST_CASE("rotationMatrixFromQuaternion_derivative")
 {
-  auto wrap = boost::function<Mat<3,3>(Vect<4> const&)>{[](auto&& ... args){
+  auto wrap = boost::function<Mat<3,3>(Eigen::Vector4d const&)>{[](auto&& ... args){
     return rotationMatrixFromQuaternion(std::forward<decltype(args)>(args) ... );
   }};
 
   Eigen::Quaterniond rand = Eigen::Quaterniond::UnitRandom();
-  Vect<4> q = (Vect<4>() << rand.w(), rand.vec()).finished();
+  Eigen::Vector4d q = (Eigen::Vector4d() << rand.w(), rand.vec()).finished();
   auto num = numericalDerivative11(wrap, q);
   Mat<9, 4> calc;
   rotationMatrixFromQuaternion(q, calc);
@@ -39,19 +39,19 @@ TEST_CASE("rotationMatrixFromQuaternion_derivative")
 
 TEST_CASE("normalize")
 {
-  Vect<4> unq = Vect<4>::Random();
-  Vect<4> q = normalize(unq);
+  Eigen::Vector4d unq = Eigen::Vector4d::Random();
+  Eigen::Vector4d q = normalize(unq);
   double norm = q.dot(q);
   CHECK( std::abs( norm - 1.0) < std::numeric_limits<double>::epsilon() );
 }
 
 TEST_CASE("normalize_derivative")
 {
-  auto wrap = boost::function<Vect<4>(Vect<4> const&)>{[](auto&& ... args){
+  auto wrap = boost::function<Eigen::Vector4d(Eigen::Vector4d const&)>{[](auto&& ... args){
     return normalize(std::forward<decltype(args)>(args) ... );
   }};
 
-  Vect<4> unq = Vect<4>::Random();
+  Eigen::Vector4d unq = Eigen::Vector4d::Random();
   auto num = numericalDerivative11(wrap, unq);
   Mat<4, 4> calc;
   normalize<4>(unq, calc);
@@ -61,10 +61,10 @@ TEST_CASE("normalize_derivative")
 TEST_CASE("angleAxisFromQuaternion")
 {
   Eigen::Quaterniond rand = Eigen::Quaterniond::UnitRandom();
-  Vect<4> q = (Vect<4>() << rand.w(), rand.vec()).finished();
+  Eigen::Vector4d q = (Eigen::Vector4d() << rand.w(), rand.vec()).finished();
   Eigen::AngleAxisd eaa{rand}; 
-  Vect<3> expected = eaa.angle() * eaa.axis();
-  Vect<3> actual = angleAxisFromQuaternion(q);
+  Eigen::Vector3d expected = eaa.angle() * eaa.axis();
+  Eigen::Vector3d actual = angleAxisFromQuaternion(q);
 
   Mat<3,3> eR = gtsam::Rot3::Rodrigues(expected).matrix();
   Mat<3,3> aR = gtsam::Rot3::Rodrigues(actual).matrix();
@@ -73,11 +73,11 @@ TEST_CASE("angleAxisFromQuaternion")
 
 TEST_CASE("angleAxisFromQuaternion_derivative")
 {
-  auto wrap = boost::function<Vect<3>(Vect<4> const&)>{[](auto&& ... args){
+  auto wrap = boost::function<Eigen::Vector3d(Eigen::Vector4d const&)>{[](auto&& ... args){
     return angleAxisFromQuaternion(std::forward<decltype(args)>(args) ... );
   }};
 
-  Vect<4> unq = Vect<4>::Random();
+  Eigen::Vector4d unq = Eigen::Vector4d::Random();
   auto num = numericalDerivative11(wrap, unq);
   Mat<3, 4> calc;
   angleAxisFromQuaternion(unq, calc);

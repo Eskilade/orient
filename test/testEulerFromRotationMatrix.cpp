@@ -16,46 +16,46 @@ using namespace gtsam;
   TEST_CASE(#a1 "_" #a2 "_" #a3)\
   {\
     std::srand(0);\
-    Vect<3> aa;\
+    Eigen::Vector3d aa;\
     SECTION("Zero"){\
-      aa = Vect<3>::Zero();\
+      aa = Eigen::Vector3d::Zero();\
     }\
     SECTION("Random"){\
-      aa = Vect<3>::Random();\
+      aa = Eigen::Vector3d::Random();\
     }\
     SECTION("GimballLock_1_TaitBryan"){\
-      aa = Vect<3>::Random();\
+      aa = Eigen::Vector3d::Random();\
       aa[1] = M_PI/2.0;\
     }\
     SECTION("GimballLock_2_TaitBryan"){\
-      aa = Vect<3>::Random();\
+      aa = Eigen::Vector3d::Random();\
       aa[1] = - M_PI/2.0;\
     }\
     SECTION("GimballLock_1_ProperEuler"){\
-      aa = Vect<3>::Random();\
+      aa = Eigen::Vector3d::Random();\
       aa[1] = M_PI;\
     }\
     SECTION("GimballLock_2_ProperEuler"){\
-      aa = Vect<3>::Random();\
+      aa = Eigen::Vector3d::Random();\
       aa[1] = 0;\
     }\
     Mat<3,3> R = toR<a1, a2, a3>(aa);\
-    Vect<3> angles = eulerFromRotationMatrix<a1, a2, a3>(R);\
+    Eigen::Vector3d angles = eulerFromRotationMatrix<a1, a2, a3>(R);\
     Mat<3,3> R2 = toR<a1, a2, a3>(angles);\
     CHECK( R2.isApprox(R) ); \
   }\
   TEST_CASE(#a1 "_" #a2 "_" #a3 "_derivative")\
   {\
     std::srand(1);\
-    Vect<3> aa;\
+    Eigen::Vector3d aa;\
     SECTION("Random"){\
-      aa = Vect<3>::Random();\
+      aa = Eigen::Vector3d::Random();\
     }\
     auto wrap = [](auto&& ... args){\
       return eulerFromRotationMatrix<a1, a2, a3>(std::forward<decltype(args)>(args) ... );\
     };\
     Mat<3,3> R = toR<a1, a2, a3>(aa);\
-    auto num = numericalDerivative11<Vect<3>, Mat<3,3>>(wrap, R);\
+    auto num = numericalDerivative11<Eigen::Vector3d, Mat<3,3>>(wrap, R);\
     Mat<3,9> calc;\
     eulerFromRotationMatrix<a1, a2, a3>(R, calc);\
     CHECK( calc.isApprox(num, 1e-6) );\

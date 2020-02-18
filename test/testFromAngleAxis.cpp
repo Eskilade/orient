@@ -43,86 +43,86 @@ TEST_CASE("rotationMatrixFromAngleAxis_derivative")
 
   Mat<9,3> calc;
   rotationMatrixFromAngleAxis(aa, calc);
-  auto numeric = numericalDerivative11<Mat<3,3>, Vect<3>>(wrap(rotationMatrixFromAngleAxis), aa);
+  auto numeric = numericalDerivative11<Mat<3,3>, Eigen::Vector3d>(wrap(rotationMatrixFromAngleAxis), aa);
   CHECK( calc.isApprox(numeric, 1e-10) );
 }
 
 TEST_CASE("quaternionFromAngleAxis")
 {
-  Vect<3> aa;
+  Eigen::Vector3d aa;
   SECTION("Random"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
   }
   SECTION("half_PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= M_PI / (2*std::sqrt(aa.dot(aa)));
   }
   SECTION("minus_half_PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= -M_PI / (2*std::sqrt(aa.dot(aa)));
   }
   SECTION("PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= M_PI / std::sqrt(aa.dot(aa));
   }
   SECTION("minus_PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= -M_PI / std::sqrt(aa.dot(aa));
   }
   SECTION("2PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= 2*M_PI / std::sqrt(aa.dot(aa));
   }
   SECTION("minus_2PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= -2*M_PI / std::sqrt(aa.dot(aa));
   }
 
 
 
   const auto angle = std::sqrt(aa.dot(aa));
-  const Vect<3> axis = aa / angle;
+  const Eigen::Vector3d axis = aa / angle;
   Eigen::AngleAxisd eaa{angle, axis};
   Eigen::Quaterniond equat{eaa};
 
-  Vect<4> expected = (Vect<4>() << equat.w(), equat.vec()).finished();
-  Vect<4> actual = quaternionFromAngleAxis(aa);
+  Eigen::Vector4d expected = (Eigen::Vector4d() << equat.w(), equat.vec()).finished();
+  Eigen::Vector4d actual = quaternionFromAngleAxis(aa);
   CHECK( expected.isApprox(actual) );
 }
 TEST_CASE("quaternionFromAngleAxis_derivative")
 {
-  Vect<3> aa;
+  Eigen::Vector3d aa;
   SECTION("Random"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
   }
   SECTION("half_PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= M_PI / (2*std::sqrt(aa.dot(aa)));
   }
   SECTION("minus_half_PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= -M_PI / (2*std::sqrt(aa.dot(aa)));
   }
   SECTION("PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= M_PI / std::sqrt(aa.dot(aa));
   }
   SECTION("minus_PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= -M_PI / std::sqrt(aa.dot(aa));
   }
   SECTION("2PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= 2*M_PI / std::sqrt(aa.dot(aa));
   }
   SECTION("minus_2PI_angle"){
-    aa = Vect<3>::Random();
+    aa = Eigen::Vector3d::Random();
     aa *= -2*M_PI / std::sqrt(aa.dot(aa));
   }
 
   Mat<4,3> calc;
   quaternionFromAngleAxis(aa, calc);
-  auto numeric = numericalDerivative11<Vect<4>, Vect<3>>(wrap(quaternionFromAngleAxis), aa);
+  auto numeric = numericalDerivative11<Eigen::Vector4d, Eigen::Vector3d>(wrap(quaternionFromAngleAxis), aa);
   CHECK( calc.isApprox(numeric, 1e-10) );
 }
 
