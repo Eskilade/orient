@@ -1,5 +1,5 @@
 #include <fromAngleAxis.hpp>
-#include <trigonometric_derivatives.hpp>
+#include <detail/trigonometric_derivatives.hpp>
 
 template<Axis axis>
 Mat<3,3> rodriguesDerivative(Vect<3> const& aa)

@@ -1,6 +1,6 @@
 #include <fromQuaternion.hpp>
 #include <common.hpp>
-#include <trigonometric_derivatives.hpp>
+#include <detail/trigonometric_derivatives.hpp>
 
 template<int I>
 Mat<3,3> rotFromQuatDer(Vect<4> const& q)

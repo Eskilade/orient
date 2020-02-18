@@ -3,7 +3,7 @@
 #include <catch.hpp>
 
 #include <iostream>
-#include <trigonometric_derivatives.hpp>
+#include <detail/trigonometric_derivatives.hpp>
 #include <gtsam/base/numericalDerivative.h>
 
 #define Wrap(FNAME) \

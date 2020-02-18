@@ -1,9 +1,9 @@
 #pragma once
 
 #include <common.hpp>
-#include <traits.hpp>
+#include <detail/traits.hpp>
 #include <type_traits>
-#include <trigonometric_derivatives.hpp>
+#include <detail/trigonometric_derivatives.hpp>
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isTaitBryan<A1,A2,A3>(), int> = 0>
 Vect<3> eulerFromRotationMatrix(Mat<3,3> const& R)
