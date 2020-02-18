@@ -28,41 +28,48 @@ Mat<3,3> rotFromQuatDer<0>(Vect<4> const& q)
            2*sHq0*q[0]*X + 
            2*s*X;
 }
-  
-Mat<3,3> rotationMatrixFromQuaternion(Vect<4> const& q, OptionalRef<Mat<9,4>> H)
+
+Mat<3,3> rotationMatrixFromQuaternion(Vect<4> const& q)
 {
-  if(H){
-    Eigen::Map<Mat<3,3>>(H->block<9,1>(0,0).data(), 3,3) = rotFromQuatDer<0>(q);
-    Eigen::Map<Mat<3,3>>(H->block<9,1>(0,1).data(), 3,3) = rotFromQuatDer<1>(q);
-    Eigen::Map<Mat<3,3>>(H->block<9,1>(0,2).data(), 3,3) = rotFromQuatDer<2>(q);
-    Eigen::Map<Mat<3,3>>(H->block<9,1>(0,3).data(), 3,3) = rotFromQuatDer<3>(q);
-  }
   double s = 1 / q.dot(q);
   Mat<3,3> X = gtsam::skewSymmetric(q.segment<3>(1));
   return Mat<3,3>::Identity() + 2 * s * X * X + 2*s*q[0]*X;
 } 
+ 
+Mat<3,3> rotationMatrixFromQuaternion(Vect<4> const& q, Eigen::Ref<Mat<9,4>> H)
+{
+  Eigen::Map<Mat<3,3>>(H.block<9,1>(0,0).data(), 3,3) = rotFromQuatDer<0>(q);
+  Eigen::Map<Mat<3,3>>(H.block<9,1>(0,1).data(), 3,3) = rotFromQuatDer<1>(q);
+  Eigen::Map<Mat<3,3>>(H.block<9,1>(0,2).data(), 3,3) = rotFromQuatDer<2>(q);
+  Eigen::Map<Mat<3,3>>(H.block<9,1>(0,3).data(), 3,3) = rotFromQuatDer<3>(q);
+  return rotationMatrixFromQuaternion(q);
+} 
 
+Vect<3> angleAxisFromQuaternion(Vect<4> const& q)
+{
+  double n = q.dot(q);
+  double w = q[0];
+  Vect<3> v = q.segment<3>(1);
+  double nv = std::sqrt(v.dot(v));
+  const auto a =  detail::atan2(nv, w);
+  return 2 * v * a / nv;
+}
 
-Vect<3> angleAxisFromQuaternion(Vect<4> const& q, OptionalRef<Mat<3,4>> H )
+Vect<3> angleAxisFromQuaternion(Vect<4> const& q, Eigen::Ref<Mat<3,4>> H )
 {
   double n = q.dot(q);
   if( n < std::numeric_limits<double>::epsilon()){
-    if(H)
-      *H = Mat<3,4>::Constant(std::nan(""));
+    H = Mat<3,4>::Constant(std::nan(""));
   }
   double w = q[0];
   Vect<3> v = q.segment<3>(1);
   double nv = std::sqrt(v.dot(v));
-  Mat<1,1> aHnv, aHw;
+  double aHnv, aHw;
   const auto a =  detail::atan2(nv, w, aHnv, aHw);
   const auto aa = 2 * v * a / nv;
-  if(H){
-    const Mat<1,3> nvHv = v.transpose() / nv;
-    H->block<3,1>(0,0) = 2 * v * aHw / nv;
-    H->block<3,3>(0,1) = 
-      2 * v * aHnv * nvHv / nv
-      - 2 * a * gtsam::skewSymmetric(v) * gtsam::skewSymmetric(v) / (nv*nv*nv);
-  }
-
+  const Mat<1,3> nvHv = v.transpose() / nv;
+  H.block<3,1>(0,0) = 2 * v * aHw / nv;
+  H.block<3,3>(0,1) = 2 * v * aHnv * nvHv / nv
+    - 2 * a * gtsam::skewSymmetric(v) * gtsam::skewSymmetric(v) / (nv*nv*nv);
   return aa;
 }

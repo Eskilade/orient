@@ -1,8 +1,0 @@
-
-quaternion <> aa
-          \   /
-           \ /
-            v
-            R
-            |
-          euler

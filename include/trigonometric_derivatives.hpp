@@ -1,34 +1,31 @@
 #include <cmath>
 #include <common.hpp>
-#include <OptionalRef.hpp>
 
 namespace detail {
-double asin(double x, OptionalRef<Mat<1,1>> H = {})
+using std::asin;
+double asin(double x, double& H)
 {
-  if(H)
-    (*H)(0,0) = ( std::abs(x) < 1.0 - std::numeric_limits<double>::epsilon() ) 
-      ? 1.0 / std::sqrt(1.0 - x*x) : std::nan("");
+  H = ( std::abs(x) < 1.0 - std::numeric_limits<double>::epsilon() ) 
+    ? 1.0 / std::sqrt(1.0 - x*x) : std::nan("");
   return std::asin(x);
 }
 
-double acos(double x, OptionalRef<Mat<1,1>> H = {})
+using std::acos;
+double acos(double x, double& H)
 {
-  if(H)
-    (*H)(0,0) = ( std::abs(x) < 1.0 - std::numeric_limits<double>::epsilon() ) 
-      ? - 1.0 / std::sqrt(1.0 - x*x) : std::nan("");
+  H = ( std::abs(x) < 1.0 - std::numeric_limits<double>::epsilon() ) 
+   ? - 1.0 / std::sqrt(1.0 - x*x) : std::nan("");
   return std::acos(x);
 }
 
-double atan2(double y, double x, OptionalRef<Mat<1,1>> Hy = {}, OptionalRef<Mat<1,1>> Hx = {})
+using std::atan2;
+double atan2(double y, double x, double& Hy, double& Hx)
 {
-  if(Hy or Hx){
-    auto norm = x*x + y*y;
-    auto isValid = norm > std::numeric_limits<double>::epsilon();
-    if(Hy)
-      (*Hy)(0,0) = isValid ? x / norm : std::nan("");
-    if(Hx)
-      (*Hx)(0,0) = isValid ? - y / norm : std::nan("");
-  }
+  auto norm = x*x + y*y;
+  auto isValid = norm > std::numeric_limits<double>::epsilon();
+  Hy = isValid ? x / norm : std::nan("");
+  Hx = isValid ? - y / norm : std::nan("");
   return std::atan2(y, x);
 }
+
 }

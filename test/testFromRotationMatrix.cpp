@@ -56,4 +56,42 @@ TEST_CASE("angleAxisFromRotationMatrix")
   std::cout << actual.transpose() << "\n";
 }
 
+TEST_CASE("quaternionFromRotationMatrix")
+{
+  Vect<3> aa;
+  SECTION("Random"){
+    aa = Vect<3>::Random();
+  }
+  SECTION("half_PI_angle"){
+    aa = Vect<3>::Random();
+    aa *= M_PI / (2*std::sqrt(aa.dot(aa)));
+  }
+  SECTION("minus_half_PI_angle"){
+    aa = Vect<3>::Random();
+    aa *= -M_PI / (2*std::sqrt(aa.dot(aa)));
+  }
+  SECTION("PI_angle"){
+    aa = Vect<3>::Random();
+    aa *= M_PI / std::sqrt(aa.dot(aa));
+  }
+  SECTION("minus_PI_angle"){
+    aa = Vect<3>::Random();
+    aa *= -M_PI / std::sqrt(aa.dot(aa));
+  }
+  SECTION("2PI_angle"){
+    aa = Vect<3>::Random();
+    aa *= 2*M_PI / std::sqrt(aa.dot(aa));
+  }
+  SECTION("minus_2PI_angle"){
+    aa = Vect<3>::Random();
+    aa *= -2*M_PI / std::sqrt(aa.dot(aa));
+  }
 
+  Mat<3,3> R = gtsam::Rot3::Rodrigues(aa).matrix();
+  Eigen::Quaterniond equat{R};
+  Vect<4> expected = (Vect<4>() << equat.w(), equat.vec()).finished();
+  const Vect<4> actual = quaternionFromRotationMatrix(R);
+  std::cout << expected.transpose() << "\n";
+  std::cout << actual.transpose() << "\n";
+  std::cout << "-----\n";
+}

@@ -124,19 +124,25 @@ Mat<3,3> make_generator()
 template<Axis axis>
 static const auto generator = make_generator<axis>();
 
-#include <OptionalRef.hpp>
 template<int N>
-Vect<N> normalize(Vect<N> const& v, OptionalRef<Mat<N,N>> H = {})
+Vect<N> normalize(Vect<N> const& v)
+{
+  double n2 = v.dot(v);
+  if( n2 < std::numeric_limits<double>::epsilon())
+    return Vect<N>::Constant(std::nan(""));
+  double n = std::sqrt(n2);
+  return v / n;
+}
+
+template<int N>
+Vect<N> normalize(Vect<N> const& v, Eigen::Ref<Mat<N,N>> H)
 {
   double n2 = v.dot(v);
   if( n2 < std::numeric_limits<double>::epsilon()){
-    if(H)
-      *H = Mat<N,N>::Constant(std::nan(""));
+    H = Mat<N,N>::Constant(std::nan(""));
     return Vect<N>::Constant(std::nan(""));
   }
   double n = std::sqrt(n2);
-  if(H){
-    *H = - v * v.transpose() / ( n * n2) + Mat<N,N>::Identity() * 1.0 / n;
-  }
+  H = - v * v.transpose() / ( n * n2) + Mat<N,N>::Identity() * 1.0 / n;
   return v / n;
 }
