@@ -39,9 +39,9 @@ using namespace gtsam;
       aa = Eigen::Vector3d::Random();\
       aa[1] = 0;\
     }\
-    Mat<3,3> R = toR<a1, a2, a3>(aa);\
+    Eigen::Matrix3d R = toR<a1, a2, a3>(aa);\
     Eigen::Vector3d angles = eulerFromRotationMatrix<a1, a2, a3>(R);\
-    Mat<3,3> R2 = toR<a1, a2, a3>(angles);\
+    Eigen::Matrix3d R2 = toR<a1, a2, a3>(angles);\
     CHECK( R2.isApprox(R) ); \
   }\
   TEST_CASE(#a1 "_" #a2 "_" #a3 "_derivative")\
@@ -54,9 +54,9 @@ using namespace gtsam;
     auto wrap = [](auto&& ... args){\
       return eulerFromRotationMatrix<a1, a2, a3>(std::forward<decltype(args)>(args) ... );\
     };\
-    Mat<3,3> R = toR<a1, a2, a3>(aa);\
-    auto num = numericalDerivative11<Eigen::Vector3d, Mat<3,3>>(wrap, R);\
-    Mat<3,9> calc;\
+    Eigen::Matrix3d R = toR<a1, a2, a3>(aa);\
+    auto num = numericalDerivative11<Eigen::Vector3d, Eigen::Matrix3d>(wrap, R);\
+    Eigen::Matrix<double, 3, 9> calc;\
     eulerFromRotationMatrix<a1, a2, a3>(R, calc);\
     CHECK( calc.isApprox(num, 1e-6) );\
   }

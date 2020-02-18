@@ -1,6 +1,34 @@
 #pragma once
 
-#include <common.hpp>
+#include <axis.hpp>
+
+template<Axis a1, Axis a2>
+constexpr Axis missing()
+{
+  return Axis{3 - static_cast<std::underlying_type_t<Axis>>(a1) -
+    static_cast<std::underlying_type_t<Axis>>(a2)};
+}
+
+template<Axis a1, Axis a2, Axis a3>
+constexpr bool isTaitBryan()
+{
+  return 
+    (static_cast<std::underlying_type_t<Axis>>(a1) +
+    static_cast<std::underlying_type_t<Axis>>(a2) +
+    static_cast<std::underlying_type_t<Axis>>(a3)) == 3;
+}
+
+template<Axis a1, Axis a2, Axis a3>
+constexpr bool isProperEuler()
+{
+  return (a1 == a3) and (a1 != a2);
+}
+
+template<Axis a1, Axis a2, Axis a3>
+constexpr bool isMalformed()
+{
+  return (a1 == a2) or (a2 == a3);
+}
 
 template<Axis a1, Axis a2, Axis a3>
 struct TaitBryanTraits

@@ -3,11 +3,11 @@
 #include <detail/trigonometric_derivatives.hpp>
 
 template<int I>
-Mat<3,3> rotFromQuatDer(Eigen::Vector4d const& q)
+Eigen::Matrix3d rotFromQuatDer(Eigen::Vector4d const& q)
 {
   double n = q.dot(q);
   double s = 1.0 / n;
-  Mat<3,3> X = gtsam::skewSymmetric(q.segment<3>(1));
+  Eigen::Matrix3d X = gtsam::skewSymmetric(q.segment<3>(1));
   auto sHqi = - 2 * q[I] * s * s;
   return 
     2 * sHqi * X * X +
@@ -18,30 +18,30 @@ Mat<3,3> rotFromQuatDer(Eigen::Vector4d const& q)
 }
 
 template<>
-Mat<3,3> rotFromQuatDer<0>(Eigen::Vector4d const& q)
+Eigen::Matrix3d rotFromQuatDer<0>(Eigen::Vector4d const& q)
 {
   double n = q.dot(q);
   double s = 1.0 / n;
-  Mat<3,3> X = gtsam::skewSymmetric(q.segment<3>(1));
+  Eigen::Matrix3d X = gtsam::skewSymmetric(q.segment<3>(1));
   auto sHq0 = -2 * q[0]*s*s;
   return 2*sHq0 * X * X + 
            2*sHq0*q[0]*X + 
            2*s*X;
 }
 
-Mat<3,3> rotationMatrixFromQuaternion(Eigen::Vector4d const& q)
+Eigen::Matrix3d rotationMatrixFromQuaternion(Eigen::Vector4d const& q)
 {
   double s = 1 / q.dot(q);
-  Mat<3,3> X = gtsam::skewSymmetric(q.segment<3>(1));
-  return Mat<3,3>::Identity() + 2 * s * X * X + 2*s*q[0]*X;
+  Eigen::Matrix3d X = gtsam::skewSymmetric(q.segment<3>(1));
+  return Eigen::Matrix3d::Identity() + 2 * s * X * X + 2*s*q[0]*X;
 } 
  
-Mat<3,3> rotationMatrixFromQuaternion(Eigen::Vector4d const& q, Eigen::Ref<Mat<9,4>> H)
+Eigen::Matrix3d rotationMatrixFromQuaternion(Eigen::Vector4d const& q, Eigen::Ref<Eigen::Matrix<double, 9, 4>> H)
 {
-  Eigen::Map<Mat<3,3>>(H.block<9,1>(0,0).data(), 3,3) = rotFromQuatDer<0>(q);
-  Eigen::Map<Mat<3,3>>(H.block<9,1>(0,1).data(), 3,3) = rotFromQuatDer<1>(q);
-  Eigen::Map<Mat<3,3>>(H.block<9,1>(0,2).data(), 3,3) = rotFromQuatDer<2>(q);
-  Eigen::Map<Mat<3,3>>(H.block<9,1>(0,3).data(), 3,3) = rotFromQuatDer<3>(q);
+  Eigen::Map<Eigen::Matrix3d>(H.block<9,1>(0,0).data(), 3,3) = rotFromQuatDer<0>(q);
+  Eigen::Map<Eigen::Matrix3d>(H.block<9,1>(0,1).data(), 3,3) = rotFromQuatDer<1>(q);
+  Eigen::Map<Eigen::Matrix3d>(H.block<9,1>(0,2).data(), 3,3) = rotFromQuatDer<2>(q);
+  Eigen::Map<Eigen::Matrix3d>(H.block<9,1>(0,3).data(), 3,3) = rotFromQuatDer<3>(q);
   return rotationMatrixFromQuaternion(q);
 } 
 
@@ -54,11 +54,11 @@ Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q)
   return 2 * v * a / nv;
 }
 
-Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q, Eigen::Ref<Mat<3,4>> H )
+Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q, Eigen::Ref<Eigen::Matrix<double, 3, 4>> H )
 {
   double n = q.dot(q);
   if( n < std::numeric_limits<double>::epsilon()){
-    H = Mat<3,4>::Constant(std::nan(""));
+    H = Eigen::Matrix<double, 3, 4>::Constant(std::nan(""));
   }
   double w = q[0];
   Eigen::Vector3d v = q.segment<3>(1);
@@ -66,7 +66,7 @@ Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q, Eigen::Ref<Mat
   double aHnv, aHw;
   const auto a =  detail::atan2(nv, w, aHnv, aHw);
   const auto aa = 2 * v * a / nv;
-  const Mat<1,3> nvHv = v.transpose() / nv;
+  const Eigen::Matrix<double, 1, 3> nvHv = v.transpose() / nv;
   H.block<3,1>(0,0) = 2 * v * aHw / nv;
   H.block<3,3>(0,1) = 2 * v * aHnv * nvHv / nv
     - 2 * a * gtsam::skewSymmetric(v) * gtsam::skewSymmetric(v) / (nv*nv*nv);

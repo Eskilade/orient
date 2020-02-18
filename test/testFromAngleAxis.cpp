@@ -41,9 +41,9 @@ TEST_CASE("rotationMatrixFromAngleAxis_derivative")
     aa = Vector3::Zero();
   }
 
-  Mat<9,3> calc;
+  Eigen::Matrix<double, 9, 3> calc;
   rotationMatrixFromAngleAxis(aa, calc);
-  auto numeric = numericalDerivative11<Mat<3,3>, Eigen::Vector3d>(wrap(rotationMatrixFromAngleAxis), aa);
+  auto numeric = numericalDerivative11<Eigen::Matrix3d, Eigen::Vector3d>(wrap(rotationMatrixFromAngleAxis), aa);
   CHECK( calc.isApprox(numeric, 1e-10) );
 }
 
@@ -120,7 +120,7 @@ TEST_CASE("quaternionFromAngleAxis_derivative")
     aa *= -2*M_PI / std::sqrt(aa.dot(aa));
   }
 
-  Mat<4,3> calc;
+  Eigen::Matrix<double, 4, 3> calc;
   quaternionFromAngleAxis(aa, calc);
   auto numeric = numericalDerivative11<Eigen::Vector4d, Eigen::Vector3d>(wrap(quaternionFromAngleAxis), aa);
   CHECK( calc.isApprox(numeric, 1e-10) );

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <common.hpp>
 
+
 using namespace gtsam;
 #define Wrap(FNAME, RetT, ...) \
   boost::function<RetT (__VA_ARGS__ )>{[](auto&& ... args){\
@@ -48,7 +49,7 @@ TEST_CASE("angleAxisFromRotationMatrix")
     aa *= -2*M_PI / std::sqrt(aa.dot(aa));
   }
 
-  Mat<3,3> R = gtsam::Rot3::Rodrigues(aa).matrix();
+  Eigen::Matrix3d R = gtsam::Rot3::Rodrigues(aa).matrix();
   Eigen::AngleAxisd eaa{R};
   Eigen::Vector3d expected = eaa.angle() * eaa.axis();
   const Eigen::Vector3d actual = angleAxisFromRotationMatrix(R);
@@ -87,11 +88,35 @@ TEST_CASE("quaternionFromRotationMatrix")
     aa *= -2*M_PI / std::sqrt(aa.dot(aa));
   }
 
-  Mat<3,3> R = gtsam::Rot3::Rodrigues(aa).matrix();
+  Eigen::Matrix3d R = gtsam::Rot3::Rodrigues(aa).matrix();
   Eigen::Quaterniond equat{R};
   Eigen::Vector4d expected = (Eigen::Vector4d() << equat.w(), equat.vec()).finished();
   const Eigen::Vector4d actual = quaternionFromRotationMatrix(R);
   std::cout << expected.transpose() << "\n";
   std::cout << actual.transpose() << "\n";
   std::cout << "-----\n";
+}
+
+TEST_CASE("angleAxisFromRotationMatrix_derivative")
+{
+  auto wrap = [](auto&&... args){
+    return angleAxisFromRotationMatrix(args...);
+  };
+  const Eigen::Matrix3d R = Eigen::Matrix3d::Random();
+  Eigen::Matrix<double, 3, 9> H;
+  angleAxisFromRotationMatrix(R, H);
+  auto num = gtsam::numericalDerivative11<Eigen::Vector3d, Eigen::Matrix3d>(wrap, R);
+  CHECK( H.isApprox(num, 1e-10) );
+}
+
+TEST_CASE("quaternionFromRotationMatrix_derivative")
+{
+  auto wrap = [](auto&&... args){
+    return quaternionFromRotationMatrix(args...);
+  };
+  const Eigen::Matrix3d R = Eigen::Matrix3d::Random();
+  Eigen::Matrix<double, 4, 9> H;
+  quaternionFromRotationMatrix(R, H);
+  auto num = gtsam::numericalDerivative11<Eigen::Vector4d, Eigen::Matrix3d>(wrap, R);
+  CHECK( H.isApprox(num, 1e-10) );
 }

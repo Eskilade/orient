@@ -2,7 +2,7 @@
 #include <detail/trigonometric_derivatives.hpp>
 
 template<Axis axis>
-Mat<3,3> rodriguesDerivative(Eigen::Vector3d const& aa)
+Eigen::Matrix3d rodriguesDerivative(Eigen::Vector3d const& aa)
 {
   const auto t2 = aa.dot(aa);
   if (t2 < std::numeric_limits<double>::epsilon()) {
@@ -20,31 +20,31 @@ Mat<3,3> rodriguesDerivative(Eigen::Vector3d const& aa)
   }
 }
 
-Mat<3,3> rodrigues(Eigen::Vector3d const& aa)
+Eigen::Matrix3d rodrigues(Eigen::Vector3d const& aa)
 {
   const auto t2 = aa.dot(aa);
   if (t2 < std::numeric_limits<double>::epsilon()) {
-    return Mat<3,3>::Identity();
+    return Eigen::Matrix3d::Identity();
   }
   else {
     const auto t = std::sqrt(t2);
     return 
-      Mat<3,3>::Identity() +
+      Eigen::Matrix3d::Identity() +
       skew(aa) * std::sin(t) / t +
       skew(aa) * skew(aa) * (1 - std::cos(t)) / t2; 
   }
 }
 
-Mat<3,3> rotationMatrixFromAngleAxis(Eigen::Vector3d const& aa)
+Eigen::Matrix3d rotationMatrixFromAngleAxis(Eigen::Vector3d const& aa)
 {
   return rodrigues(aa);
 }
 
-Mat<3,3> rotationMatrixFromAngleAxis(Eigen::Vector3d const& aa, Eigen::Ref<Mat<9,3>> H)
+Eigen::Matrix3d rotationMatrixFromAngleAxis(Eigen::Vector3d const& aa, Eigen::Ref<Eigen::Matrix<double, 9, 3>> H)
 {
-  Eigen::Map<Mat<3,3>>(H.block<9,1>(0,0).data(), 3,3) = rodriguesDerivative<Axis::x>(aa);
-  Eigen::Map<Mat<3,3>>(H.block<9,1>(0,1).data(), 3,3) = rodriguesDerivative<Axis::y>(aa);
-  Eigen::Map<Mat<3,3>>(H.block<9,1>(0,2).data(), 3,3) = rodriguesDerivative<Axis::z>(aa);
+  Eigen::Map<Eigen::Matrix3d>(H.block<9,1>(0,0).data(), 3,3) = rodriguesDerivative<Axis::x>(aa);
+  Eigen::Map<Eigen::Matrix3d>(H.block<9,1>(0,1).data(), 3,3) = rodriguesDerivative<Axis::y>(aa);
+  Eigen::Map<Eigen::Matrix3d>(H.block<9,1>(0,2).data(), 3,3) = rodriguesDerivative<Axis::z>(aa);
   return rotationMatrixFromAngleAxis(aa);
 }
 
@@ -58,11 +58,11 @@ Eigen::Vector4d quaternionFromAngleAxis(Eigen::Vector3d const& aa)
   return (Eigen::Vector4d() << qw, vec).finished();
 }
 
-Eigen::Vector4d quaternionFromAngleAxis(Eigen::Vector3d const& aa, Eigen::Ref<Mat<4,3>> H)
+Eigen::Vector4d quaternionFromAngleAxis(Eigen::Vector3d const& aa, Eigen::Ref<Eigen::Matrix<double, 4, 3>> H)
 {
   const auto angle = std::sqrt(aa.dot(aa));
-  Mat<3,3> axisHaa;
-  const Eigen::Vector3d axis = normalize<3>(aa, axisHaa);
+  Eigen::Matrix3d axisHaa;
+  const Eigen::Vector3d axis = normalize(aa, axisHaa);
   const auto ha = angle/2;
   const auto cha = std::cos(ha);
   const auto sha = std::sin(ha);
