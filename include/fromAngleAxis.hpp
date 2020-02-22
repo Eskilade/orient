@@ -1,6 +1,5 @@
 #pragma once
 
-#include <common.hpp>
 #include <Eigen/Dense>
 
 Eigen::Vector4d quaternionFromAngleAxis(Eigen::Vector3d const& aa);

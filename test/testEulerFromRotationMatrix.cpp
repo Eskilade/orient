@@ -2,10 +2,34 @@
 
 #include <catch.hpp>
 #include <gtsam/base/numericalDerivative.h>
+#include <gtsam/geometry/Rot3.h>
 #include <eulerFromRotationMatrix.hpp>
 #include <iostream>
 
 using namespace gtsam;
+
+// Define a helper class to map axis of rotation
+// to the gtsam function calculating the rotation
+// matrix of that rotation
+
+template<Axis>
+struct Rot;
+
+#define MakeRotMat(axis) \
+  template<> struct Rot<Axis::axis> { \
+    static gtsam::Matrix3 Mat(double a){ return gtsam::Rot3::R##axis(a).matrix();}; \
+  }
+
+MakeRotMat(x);
+MakeRotMat(y);
+MakeRotMat(z);
+
+template<Axis a1, Axis a2, Axis a3>
+Eigen::Matrix3d toGtsamR(Eigen::Vector3d const& v)
+{
+  return Rot<a1>::Mat(v[0]) * Rot<a2>::Mat(v[1]) * Rot<a3>::Mat(v[2]);
+}
+
 #define Wrap(FNAME) \
   [](auto&& ... args){\
     return FNAME(std::forward<decltype(args)>(args) ... );\
@@ -39,9 +63,9 @@ using namespace gtsam;
       aa = Eigen::Vector3d::Random();\
       aa[1] = 0;\
     }\
-    Eigen::Matrix3d R = toR<a1, a2, a3>(aa);\
+    Eigen::Matrix3d R = toGtsamR<a1, a2, a3>(aa);\
     Eigen::Vector3d angles = eulerFromRotationMatrix<a1, a2, a3>(R);\
-    Eigen::Matrix3d R2 = toR<a1, a2, a3>(angles);\
+    Eigen::Matrix3d R2 = toGtsamR<a1, a2, a3>(angles);\
     CHECK( R2.isApprox(R) ); \
   }\
   TEST_CASE(#a1 "_" #a2 "_" #a3 "_derivative")\
@@ -54,41 +78,22 @@ using namespace gtsam;
     auto wrap = [](auto&& ... args){\
       return eulerFromRotationMatrix<a1, a2, a3>(std::forward<decltype(args)>(args) ... );\
     };\
-    Eigen::Matrix3d R = toR<a1, a2, a3>(aa);\
+    Eigen::Matrix3d R = toGtsamR<a1, a2, a3>(aa);\
     auto num = numericalDerivative11<Eigen::Vector3d, Eigen::Matrix3d>(wrap, R);\
     Eigen::Matrix<double, 3, 9> calc;\
     eulerFromRotationMatrix<a1, a2, a3>(R, calc);\
     CHECK( calc.isApprox(num, 1e-6) );\
   }
 
-
-
-// Invalid configurations are commented
-
-//MAKE_TEST(Axis::x, Axis::x, Axis::x)
-//MAKE_TEST(Axis::x, Axis::x, Axis::y)
-//MAKE_TEST(Axis::x, Axis::x, Axis::z)
-  MAKE_TEST(Axis::x, Axis::y, Axis::x)
-//MAKE_TEST(Axis::x, Axis::y, Axis::y)
-  MAKE_TEST(Axis::x, Axis::y, Axis::z)
-  MAKE_TEST(Axis::x, Axis::z, Axis::x)
-  MAKE_TEST(Axis::x, Axis::z, Axis::y)
-//MAKE_TEST(Axis::x, Axis::z, Axis::z)
-//MAKE_TEST(Axis::y, Axis::x, Axis::x)
-  MAKE_TEST(Axis::y, Axis::x, Axis::y)
-  MAKE_TEST(Axis::y, Axis::x, Axis::z)
-//MAKE_TEST(Axis::y, Axis::y, Axis::x)
-//MAKE_TEST(Axis::y, Axis::y, Axis::y)
-//MAKE_TEST(Axis::y, Axis::y, Axis::z)
-  MAKE_TEST(Axis::y, Axis::z, Axis::x)
-  MAKE_TEST(Axis::y, Axis::z, Axis::y)
-//MAKE_TEST(Axis::y, Axis::z, Axis::z)
-//MAKE_TEST(Axis::z, Axis::x, Axis::x)
-  MAKE_TEST(Axis::z, Axis::x, Axis::y)
-  MAKE_TEST(Axis::z, Axis::x, Axis::z)
-  MAKE_TEST(Axis::z, Axis::y, Axis::x)
-//MAKE_TEST(Axis::z, Axis::y, Axis::y)
-  MAKE_TEST(Axis::z, Axis::y, Axis::z)
-//MAKE_TEST(Axis::z, Axis::z, Axis::x)
-//MAKE_TEST(Axis::z, Axis::z, Axis::y)
-//MAKE_TEST(Axis::z, Axis::z, Axis::z)
+MAKE_TEST(Axis::x, Axis::y, Axis::x)
+MAKE_TEST(Axis::x, Axis::y, Axis::z)
+MAKE_TEST(Axis::x, Axis::z, Axis::x)
+MAKE_TEST(Axis::x, Axis::z, Axis::y)
+MAKE_TEST(Axis::y, Axis::x, Axis::y)
+MAKE_TEST(Axis::y, Axis::x, Axis::z)
+MAKE_TEST(Axis::y, Axis::z, Axis::x)
+MAKE_TEST(Axis::y, Axis::z, Axis::y)
+MAKE_TEST(Axis::z, Axis::x, Axis::y)
+MAKE_TEST(Axis::z, Axis::x, Axis::z)
+MAKE_TEST(Axis::z, Axis::y, Axis::x)
+MAKE_TEST(Axis::z, Axis::y, Axis::z)

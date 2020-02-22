@@ -1,6 +1,5 @@
 #pragma once
 
-#include <common.hpp>
 #include <Eigen/Dense>
 
 Eigen::Vector3d angleAxisFromRotationMatrix(Eigen::Matrix3d const& R);

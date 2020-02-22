@@ -1,6 +1,5 @@
 #pragma once
 
-#include <common.hpp>
 #include <Eigen/Dense>
 
 Eigen::Matrix3d rotationMatrixFromQuaternion(Eigen::Vector4d const& q);

@@ -2,10 +2,12 @@
 
 #include <catch.hpp>
 #include <gtsam/base/numericalDerivative.h>
+#include <gtsam/geometry/Rot3.h>
 #include <fromEuler.hpp>
 #include <iostream>
 
 using namespace gtsam;
+
 #define Wrap(FNAME) \
   [](auto&& ... args){\
     return FNAME(std::forward<decltype(args)>(args) ... );\

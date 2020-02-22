@@ -1,10 +1,10 @@
 #define CATCH_CONFIG_MAIN
-
 #include <catch.hpp>
+
+#include <fromQuaternion.hpp>
+
 #include <gtsam/base/numericalDerivative.h>
 #include <gtsam/geometry/Rot3.h>
-#include <fromQuaternion.hpp>
-#include <iostream>
 
 #include <Eigen/Geometry>
 
@@ -35,27 +35,6 @@ TEST_CASE("rotationMatrixFromQuaternion_derivative")
   Eigen::Matrix<double, 9, 4> calc;
   rotationMatrixFromQuaternion(q, calc);
   CHECK( calc.isApprox( num, 1e-10) );
-}
-
-TEST_CASE("normalize")
-{
-  Eigen::Vector4d unq = Eigen::Vector4d::Random();
-  Eigen::Vector4d q = normalize(unq);
-  double norm = q.dot(q);
-  CHECK( std::abs( norm - 1.0) < std::numeric_limits<double>::epsilon() );
-}
-
-TEST_CASE("normalize_derivative")
-{
-  auto wrap = boost::function<Eigen::Vector4d(Eigen::Vector4d const&)>{[](auto&& ... args){
-    return normalize(std::forward<decltype(args)>(args) ... );
-  }};
-
-  Eigen::Vector4d unq = Eigen::Vector4d::Random();
-  auto num = numericalDerivative11(wrap, unq);
-  Eigen::Matrix<double, 4, 4> calc;
-  normalize(unq, calc);
-  CHECK( calc.isApprox( num, 1e-9) );
 }
 
 TEST_CASE("angleAxisFromQuaternion")

@@ -1,7 +1,8 @@
 #pragma once
+
+#include <detail/trigonometric_derivatives.hpp>
 #include <axis.hpp>
 #include <Eigen/Dense>
-#include <detail/trigonometric_derivatives.hpp>
 
 template<Axis axis>
 Eigen::Matrix3d rotationMatrixFromEuler(double angle)

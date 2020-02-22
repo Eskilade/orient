@@ -1,9 +1,8 @@
 #include <fromRotationMatrix.hpp>
-#include <common.hpp>
 
 #include <detail/trigonometric_derivatives.hpp>
 #include <detail/so3_generator.hpp>
-using namespace gtsam;
+#include <detail/skewSymmetric.hpp>
 
 double trace(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 1, 9>> H)
 {

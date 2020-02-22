@@ -1,5 +1,4 @@
 #include <cmath>
-#include <common.hpp>
 
 namespace detail {
 using std::asin;

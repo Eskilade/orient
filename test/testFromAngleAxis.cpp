@@ -1,13 +1,12 @@
 #define CATCH_CONFIG_MAIN
-
 #include <catch.hpp>
+
+#include <Eigen/Geometry>
+
 #include <gtsam/base/numericalDerivative.h>
 #include <gtsam/geometry/Rot3.h>
-#include <Eigen/Geometry>
+
 #include <fromAngleAxis.hpp>
-#include <iostream>
-#include <common.hpp>
-#include <Eigen/Geometry>
 
 using namespace gtsam;
 #define Wrap(FNAME, RetT, ...) \

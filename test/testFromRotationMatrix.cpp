@@ -1,13 +1,12 @@
-#include <fromRotationMatrix.hpp>
-
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
+#include <fromRotationMatrix.hpp>
+
 #include <gtsam/base/numericalDerivative.h>
 #include <gtsam/geometry/Rot3.h>
+
 #include <Eigen/Geometry>
-#include <iostream>
-#include <common.hpp>
 
 
 using namespace gtsam;

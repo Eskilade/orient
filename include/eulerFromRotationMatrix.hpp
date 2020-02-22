@@ -1,9 +1,7 @@
 #pragma once
 
-#include <common.hpp>
 #include <axis.hpp>
 #include <detail/axis_traits.hpp>
-#include <detail/trigonometric_derivatives.hpp>
 #include <type_traits>
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isTaitBryan<A1,A2,A3>(), int> = 0>
@@ -19,6 +17,40 @@ template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isProperEuler<A1,A2,A3>(), 
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 3, 9>> H);
  
 /* imp */ 
+#include <detail/trigonometric_derivatives.hpp>
+#include <detail/skewSymmetric.hpp>
+
+// @brief A helper class for accessing rotation matrix elements
+// that also takes into account the sign
+template<typename Derived>
+class Wrap
+{
+public:
+  Wrap(Eigen::MatrixBase<Derived> const& m):
+      ref{m},
+      sign_mat{Eigen::Matrix3d::Identity()+
+        skewSymmetric(Eigen::Vector3d::Ones())}
+    {};
+
+  auto operator()(detail::Index const& e) const
+  {
+    return sign(e) * uncorrected(e);
+  }
+
+  auto uncorrected(detail::Index const& e) const
+  {
+    return ref(e.r, e.c);
+  }
+
+  auto sign(detail::Index const& e) const
+  {
+    return sign_mat(e.r, e.c);
+  }
+
+private:
+  Eigen::Ref<const Eigen::Matrix3d> ref;
+  Eigen::Matrix3d sign_mat;
+};
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isTaitBryan<A1,A2,A3>(), int>>
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R)
