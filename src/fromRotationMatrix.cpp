@@ -4,6 +4,8 @@
 #include <detail/so3_generator.hpp>
 #include <detail/skewSymmetric.hpp>
 
+using namespace detail;
+
 double trace(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 1, 9>> H)
 {
   H << 1,0,0,0,1,0,0,0,1;

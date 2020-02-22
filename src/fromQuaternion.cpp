@@ -5,6 +5,8 @@
 #include <detail/skewSymmetric.hpp>
 #include <detail/so3_generator.hpp>
 
+using namespace detail;
+
 template<int I>
 Eigen::Matrix3d rotFromQuatDer(Eigen::Vector4d const& q)
 {

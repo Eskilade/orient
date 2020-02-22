@@ -3,6 +3,8 @@
 #include <detail/Index.hpp>
 #include <axis.hpp>
 
+namespace detail {
+
 template<Axis a1, Axis a2>
 constexpr Axis missing()
 {
@@ -99,3 +101,5 @@ struct ProperEulerTraits
       static_cast<std::underlying_type_t<Axis>>(a2)};
   };
 };
+
+}

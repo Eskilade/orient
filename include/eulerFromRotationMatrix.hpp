@@ -4,16 +4,16 @@
 #include <detail/axis_traits.hpp>
 #include <type_traits>
 
-template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isTaitBryan<A1,A2,A3>(), int> = 0>
+template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isTaitBryan<A1,A2,A3>(), int> = 0>
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R);
 
-template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isTaitBryan<A1,A2,A3>(), int> = 0>
+template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isTaitBryan<A1,A2,A3>(), int> = 0>
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 3, 9>> H);
 
-template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isProperEuler<A1,A2,A3>(), int> = 0>
+template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isProperEuler<A1,A2,A3>(), int> = 0>
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R);
 
-template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isProperEuler<A1,A2,A3>(), int> = 0>
+template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isProperEuler<A1,A2,A3>(), int> = 0>
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 3, 9>> H);
  
 /* imp */ 
@@ -29,7 +29,7 @@ public:
   Wrap(Eigen::MatrixBase<Derived> const& m):
       ref{m},
       sign_mat{Eigen::Matrix3d::Identity()+
-        skewSymmetric(Eigen::Vector3d::Ones())}
+        detail::skewSymmetric(Eigen::Vector3d::Ones())}
     {};
 
   auto operator()(detail::Index const& e) const
@@ -52,10 +52,10 @@ private:
   Eigen::Matrix3d sign_mat;
 };
 
-template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isTaitBryan<A1,A2,A3>(), int>>
+template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isTaitBryan<A1,A2,A3>(), int>>
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R)
 {
-  using T = TaitBryanTraits<A1,A2,A3>;
+  using T = detail::TaitBryanTraits<A1,A2,A3>;
   const auto W = Wrap{R};
   const auto lone_v = W.uncorrected(T::a2s);
   const auto thres = 1.0 - std::numeric_limits<float>::epsilon();
@@ -82,10 +82,10 @@ Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R)
   return (Eigen::Vector3d() << a1,a2,a3).finished();
 }
 
-template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isTaitBryan<A1,A2,A3>(), int> >
+template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isTaitBryan<A1,A2,A3>(), int> >
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 3, 9>> H)
 {
-  using T = TaitBryanTraits<A1,A2,A3>;
+  using T = detail::TaitBryanTraits<A1,A2,A3>;
   H = Eigen::Matrix<double, 3, 9>::Zero();
   const auto W = Wrap{R};
   const auto lone_v = W.uncorrected(T::a2s);
@@ -127,10 +127,10 @@ Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eig
   return (Eigen::Vector3d() << a1,a2,a3).finished();
 }
 
-template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isProperEuler<A1,A2,A3>(), int> >
+template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isProperEuler<A1,A2,A3>(), int> >
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R)
 {
-  using T = ProperEulerTraits<A1,A2>; 
+  using T = detail::ProperEulerTraits<A1,A2>; 
   const auto W = Wrap{R};
   const auto lone_v = W.uncorrected(T::a2c);
   const auto thres = 1.0 - std::numeric_limits<float>::epsilon();
@@ -157,10 +157,10 @@ Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R)
   return (Eigen::Vector3d() << a1,a2,a3).finished();
 }
 
-template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isProperEuler<A1,A2,A3>(), int> >
+template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isProperEuler<A1,A2,A3>(), int> >
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 3, 9>> H)
 {
-  using T = ProperEulerTraits<A1,A2>; 
+  using T = detail::ProperEulerTraits<A1,A2>; 
   H = Eigen::Matrix<double, 3, 9>::Zero();
   const auto W = Wrap{R};
   const auto lone_v = W.uncorrected(T::a2c);
@@ -199,7 +199,7 @@ Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eig
   return (Eigen::Vector3d() << a1,a2,a3).finished();
 }
 
-template<Axis A1, Axis A2, Axis A3, std::enable_if_t<isMalformed<A1,A2,A3>(), int> >
+template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isMalformed<A1,A2,A3>(), int> >
 void eulerFromRotationMatrix(Eigen::Matrix3d const&)
 {
   constexpr bool alwaysFalse = ( A1 != A1);

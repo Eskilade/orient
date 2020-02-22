@@ -1,6 +1,7 @@
 #include <cmath>
 
 namespace detail {
+
 using std::asin;
 double asin(double x, double& H)
 {

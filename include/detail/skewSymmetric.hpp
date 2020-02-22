@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Eigen/Dense>
+namespace detail {
 
 inline Eigen::Matrix3d skewSymmetric(double wx, double wy, double wz) {
   return (Eigen::Matrix3d() << 0.0, -wz, +wy, +wz, 0.0, -wx, -wy, +wx, 0.0).finished();
@@ -15,4 +16,6 @@ template <class Derived>
 inline Eigen::Vector3d vectorFromSkewSymmetric(const Eigen::MatrixBase<Derived>& M)
 {
   return (Eigen::Vector3d() << - M(1,2), M(0,2), - M(0,1)).finished();
+}
+
 }

@@ -3,6 +3,8 @@
 #include <axis.hpp>
 #include <Eigen/Dense>
 
+namespace detail {
+
 template<Axis axis>
 Eigen::Matrix3d make_generator()
 {
@@ -24,3 +26,5 @@ Eigen::Matrix3d make_generator()
 
 template<Axis axis>
 static const auto generator = make_generator<axis>();
+
+}

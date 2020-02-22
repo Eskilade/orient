@@ -6,6 +6,8 @@
 #include <fromAngleAxis.hpp>
 #include <normalize.hpp>
 
+using namespace detail;
+
 template<Axis axis>
 Eigen::Matrix3d rodriguesDerivative(Eigen::Vector3d const& aa)
 {
