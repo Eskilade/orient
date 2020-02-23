@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.0)
 find_package(GTSAM)
 set(CMAKE_CXX_STANDARD 17)
 
-###############################################################################
-## target definitions #########################################################
-###############################################################################
+##########################
+## target definitions ####
+##########################
 
 macro(add_test name)
   add_executable(${name} ${ARGN})
@@ -19,11 +19,11 @@ macro(add_test name)
   )
 endmacro(add_test)
 
-add_test(testTest 
-  test/testEulerFromRotationMatrix.cpp
-  test/testFromQuaternion.cpp src/fromQuaternion.cpp
-  test/testFromAngleAxis.cpp src/fromAngleAxis.cpp
-  test/testFromRotationMatrix.cpp src/fromRotationMatrix.cpp
-  test/testTrigo.cpp
-  test/testFromEuler.cpp
-  test/testNormalize.cpp)
+add_test(test_test 
+  test/euler_from_rotation_matrix_test.cpp
+  test/from_quaternion_test.cpp src/from_quaternion.cpp
+  test/from_angle_axis_test.cpp src/from_angle_axis.cpp
+  test/from_rotation_matrix_test.cpp src/from_rotation_matrix.cpp
+  test/trigonometry_test.cpp
+  test/from_euler_test.cpp
+  test/normalize_test.cpp)

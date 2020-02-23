@@ -1,6 +1,6 @@
 #include <catch/catch2.hpp>
 
-#include <fromAngleAxis.hpp>
+#include <from_angle_axis.hpp>
 
 #include <Eigen/Geometry>
 #include <gtsam/base/numericalDerivative.h>

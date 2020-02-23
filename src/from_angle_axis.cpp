@@ -1,9 +1,9 @@
-#include <detail/skewSymmetric.hpp>
+#include <detail/skew_symmetric.hpp>
 #include <detail/so3_generator.hpp>
 #include <detail/trigonometric_derivatives.hpp>
 
 #include <axis.hpp>
-#include <fromAngleAxis.hpp>
+#include <from_angle_axis.hpp>
 #include <normalize.hpp>
 
 template<Axis axis>

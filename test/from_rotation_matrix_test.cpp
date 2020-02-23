@@ -1,6 +1,6 @@
 #include <catch/catch2.hpp>
 
-#include <fromRotationMatrix.hpp>
+#include <from_rotation_matrix.hpp>
 
 #include <Eigen/Geometry>
 #include <gtsam/base/numericalDerivative.h>

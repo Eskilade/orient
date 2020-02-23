@@ -20,7 +20,7 @@ Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eig
  
 /* imp */ 
 #include <detail/trigonometric_derivatives.hpp>
-#include <detail/skewSymmetric.hpp>
+#include <detail/skew_symmetric.hpp>
 
 // @brief A helper class for accessing rotation matrix elements
 // that also takes into account the sign

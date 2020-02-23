@@ -1,6 +1,6 @@
 #include <catch/catch2.hpp>
 
-#include <fromEuler.hpp>
+#include <from_euler.hpp>
 #include <gtsam/base/numericalDerivative.h>
 #include <gtsam/geometry/Rot3.h>
 

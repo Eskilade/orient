@@ -1,8 +1,8 @@
-#include <fromQuaternion.hpp>
+#include <from_quaternion.hpp>
 
 #include <axis.hpp>
 #include <detail/trigonometric_derivatives.hpp>
-#include <detail/skewSymmetric.hpp>
+#include <detail/skew_symmetric.hpp>
 #include <detail/so3_generator.hpp>
 
 template<int I>

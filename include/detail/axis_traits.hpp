@@ -1,6 +1,6 @@
 #pragma once
 
-#include <detail/Index.hpp>
+#include <detail/index.hpp>
 #include <axis.hpp>
 
 namespace detail {

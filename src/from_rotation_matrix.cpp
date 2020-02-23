@@ -1,6 +1,6 @@
-#include <fromRotationMatrix.hpp>
+#include <from_rotation_matrix.hpp>
 
-#include <detail/skewSymmetric.hpp>
+#include <detail/skew_symmetric.hpp>
 #include <detail/so3_generator.hpp>
 #include <detail/trigonometric_derivatives.hpp>
 

@@ -1,6 +1,6 @@
 #include <catch/catch2.hpp>
 
-#include <fromQuaternion.hpp>
+#include <from_quaternion.hpp>
 
 #include <Eigen/Geometry>
 #include <gtsam/base/numericalDerivative.h>
