@@ -19,10 +19,11 @@ macro(add_test name)
   )
 endmacro(add_test)
 
-add_test(testEulerFromRotationMatrix test/testEulerFromRotationMatrix.cpp)
-add_test(fromQuaternion test/testFromQuaternion.cpp src/fromQuaternion.cpp)
-add_test(fromAngleAxis test/testFromAngleAxis.cpp src/fromAngleAxis.cpp)
-add_test(fromRotationMatrix test/testFromRotationMatrix.cpp src/fromRotationMatrix.cpp)
-add_test(trigo test/testTrigo.cpp)
-add_test(fromEuler test/testFromEuler.cpp)
-add_test(testNormalize test/testNormalize.cpp)
+add_test(testTest 
+  test/testEulerFromRotationMatrix.cpp
+  test/testFromQuaternion.cpp src/fromQuaternion.cpp
+  test/testFromAngleAxis.cpp src/fromAngleAxis.cpp
+  test/testFromRotationMatrix.cpp src/fromRotationMatrix.cpp
+  test/testTrigo.cpp
+  test/testFromEuler.cpp
+  test/testNormalize.cpp)

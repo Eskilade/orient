@@ -1,5 +1,5 @@
 #define CATCH_CONFIG_MAIN
-#include <catch.hpp>
+#include <catch/catch2.hpp>
 
 #include <eulerFromRotationMatrix.hpp>
 

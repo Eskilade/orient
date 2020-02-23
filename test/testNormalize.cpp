@@ -1,8 +1,8 @@
-#define CATCH_CONFIG_MAIN
+#include <catch/catch2.hpp>
 
-#include <catch.hpp>
-#include <gtsam/base/numericalDerivative.h>
 #include <normalize.hpp>
+
+#include <gtsam/base/numericalDerivative.h>
 
 #define Wrap(FNAME, RetT, ...) \
   boost::function<RetT (__VA_ARGS__ )>{[](auto&& ... args){\

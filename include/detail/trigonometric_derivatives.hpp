@@ -3,7 +3,7 @@
 namespace detail {
 
 using std::asin;
-double asin(double x, double& H)
+inline double asin(double x, double& H)
 {
   H = ( std::abs(x) < 1.0 - std::numeric_limits<double>::epsilon() ) 
     ? 1.0 / std::sqrt(1.0 - x*x) : std::nan("");
@@ -11,7 +11,7 @@ double asin(double x, double& H)
 }
 
 using std::acos;
-double acos(double x, double& H)
+inline double acos(double x, double& H)
 {
   H = ( std::abs(x) < 1.0 - std::numeric_limits<double>::epsilon() ) 
    ? - 1.0 / std::sqrt(1.0 - x*x) : std::nan("");
@@ -19,7 +19,7 @@ double acos(double x, double& H)
 }
 
 using std::atan2;
-double atan2(double y, double x, double& Hy, double& Hx)
+inline double atan2(double y, double x, double& Hy, double& Hx)
 {
   auto norm = x*x + y*y;
   auto isValid = norm > std::numeric_limits<double>::epsilon();

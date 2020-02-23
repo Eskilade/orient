@@ -1,5 +1,4 @@
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
+#include <catch/catch2.hpp>
 
 #include <fromEuler.hpp>
 #include <gtsam/base/numericalDerivative.h>

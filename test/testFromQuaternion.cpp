@@ -1,5 +1,4 @@
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
+#include <catch/catch2.hpp>
 
 #include <fromQuaternion.hpp>
 
@@ -23,7 +22,7 @@ TEST_CASE("rotationMatrixFromQuaternion_derivative")
   auto num = gtsam::numericalDerivative11(rotationMatrixFromQuaternion, q);
   Eigen::Matrix<double, 9, 4> calc;
   rotationMatrixFromQuaternion(q, calc);
-  CHECK( calc.isApprox( num, 1e-10) );
+  CHECK( calc.isApprox( num, 1e-9) );
 }
 
 TEST_CASE("angleAxisFromQuaternion")
