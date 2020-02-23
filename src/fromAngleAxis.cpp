@@ -1,29 +1,27 @@
-#include <detail/trigonometric_derivatives.hpp>
-#include <detail/so3_generator.hpp>
 #include <detail/skewSymmetric.hpp>
+#include <detail/so3_generator.hpp>
+#include <detail/trigonometric_derivatives.hpp>
 
 #include <axis.hpp>
 #include <fromAngleAxis.hpp>
 #include <normalize.hpp>
-
-using namespace detail;
 
 template<Axis axis>
 Eigen::Matrix3d rodriguesDerivative(Eigen::Vector3d const& aa)
 {
   const auto t2 = aa.dot(aa);
   if (t2 < std::numeric_limits<double>::epsilon()) {
-    return generator<axis>;
+    return detail::generator<axis>;
   }
   else {
     const auto t = std::sqrt(t2);
     const auto a = aa[static_cast<std::underlying_type_t<Axis>>(axis)];
     return 
-      generator<axis> * std::sin(t) / t + 
-      skewSymmetric(aa) * a * (t*std::cos(t) - std::sin(t)) / (t2*t) +
-      generator<axis> * skewSymmetric(aa) * (1 - std::cos(t))/t2 + 
-      skewSymmetric(aa) * generator<axis> * (1 - std::cos(t))/t2 + 
-      skewSymmetric(aa) * skewSymmetric(aa) * a * (t*std::sin(t) + 2*std::cos(t) - 2) / (t2*t2); 
+      detail::generator<axis> * std::sin(t) / t + 
+      detail::skewSymmetric(aa) * a * (t*std::cos(t) - std::sin(t)) / (t2*t) +
+      detail::generator<axis> * detail::skewSymmetric(aa) * (1 - std::cos(t))/t2 + 
+      detail::skewSymmetric(aa) * detail::generator<axis> * (1 - std::cos(t))/t2 + 
+      detail::skewSymmetric(aa) * detail::skewSymmetric(aa) * a * (t*std::sin(t) + 2*std::cos(t) - 2) / (t2*t2); 
   }
 }
 
@@ -37,8 +35,8 @@ Eigen::Matrix3d rodrigues(Eigen::Vector3d const& aa)
     const auto t = std::sqrt(t2);
     return 
       Eigen::Matrix3d::Identity() +
-      skewSymmetric(aa) * std::sin(t) / t +
-      skewSymmetric(aa) * skewSymmetric(aa) * (1 - std::cos(t)) / t2; 
+      detail::skewSymmetric(aa) * std::sin(t) / t +
+      detail::skewSymmetric(aa) * detail::skewSymmetric(aa) * (1 - std::cos(t)) / t2; 
   }
 }
 

@@ -3,16 +3,9 @@
 
 #include <fromQuaternion.hpp>
 
+#include <Eigen/Geometry>
 #include <gtsam/base/numericalDerivative.h>
 #include <gtsam/geometry/Rot3.h>
-
-#include <Eigen/Geometry>
-
-using namespace gtsam;
-#define Wrap(FNAME, RetT, ...) \
-  boost::function<RetT (__VA_ARGS__ )>{[](auto&& ... args){\
-    return FNAME(std::forward<decltype(args)>(args) ... );\
-  }}
 
 TEST_CASE("rotationMatrixFromQuaternion"){
   Eigen::Quaterniond rand = Eigen::Quaterniond::UnitRandom();
@@ -25,13 +18,9 @@ TEST_CASE("rotationMatrixFromQuaternion"){
 
 TEST_CASE("rotationMatrixFromQuaternion_derivative")
 {
-  auto wrap = boost::function<Eigen::Matrix3d(Eigen::Vector4d const&)>{[](auto&& ... args){
-    return rotationMatrixFromQuaternion(std::forward<decltype(args)>(args) ... );
-  }};
-
   Eigen::Quaterniond rand = Eigen::Quaterniond::UnitRandom();
   Eigen::Vector4d q = (Eigen::Vector4d() << rand.w(), rand.vec()).finished();
-  auto num = numericalDerivative11(wrap, q);
+  auto num = gtsam::numericalDerivative11(rotationMatrixFromQuaternion, q);
   Eigen::Matrix<double, 9, 4> calc;
   rotationMatrixFromQuaternion(q, calc);
   CHECK( calc.isApprox( num, 1e-10) );
@@ -52,15 +41,9 @@ TEST_CASE("angleAxisFromQuaternion")
 
 TEST_CASE("angleAxisFromQuaternion_derivative")
 {
-  auto wrap = boost::function<Eigen::Vector3d(Eigen::Vector4d const&)>{[](auto&& ... args){
-    return angleAxisFromQuaternion(std::forward<decltype(args)>(args) ... );
-  }};
-
   Eigen::Vector4d unq = Eigen::Vector4d::Random();
-  auto num = numericalDerivative11(wrap, unq);
+  auto num = gtsam::numericalDerivative11(angleAxisFromQuaternion, unq);
   Eigen::Matrix<double, 3, 4> calc;
   angleAxisFromQuaternion(unq, calc);
   CHECK( calc.isApprox( num, 1e-9) );
 }
-
-

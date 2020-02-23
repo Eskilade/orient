@@ -4,6 +4,8 @@
 #include <detail/axis_traits.hpp>
 #include <type_traits>
 
+#include <Eigen/Dense>
+
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isTaitBryan<A1,A2,A3>(), int> = 0>
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R);
 

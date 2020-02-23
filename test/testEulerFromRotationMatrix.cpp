@@ -1,12 +1,10 @@
 #define CATCH_CONFIG_MAIN
-
 #include <catch.hpp>
+
+#include <eulerFromRotationMatrix.hpp>
+
 #include <gtsam/base/numericalDerivative.h>
 #include <gtsam/geometry/Rot3.h>
-#include <eulerFromRotationMatrix.hpp>
-#include <iostream>
-
-using namespace gtsam;
 
 // Define a helper class to map axis of rotation
 // to the gtsam function calculating the rotation
@@ -25,15 +23,10 @@ MakeRotMat(y);
 MakeRotMat(z);
 
 template<Axis a1, Axis a2, Axis a3>
-Eigen::Matrix3d toGtsamR(Eigen::Vector3d const& v)
+Eigen::Matrix3d ToGtsamRotationMatrix(Eigen::Vector3d const& v)
 {
   return Rot<a1>::Mat(v[0]) * Rot<a2>::Mat(v[1]) * Rot<a3>::Mat(v[2]);
 }
-
-#define Wrap(FNAME) \
-  [](auto&& ... args){\
-    return FNAME(std::forward<decltype(args)>(args) ... );\
-  }
 
 #define MAKE_TEST(a1, a2, a3) \
   /* Set static seeds for unit test repeatability */ \
@@ -63,9 +56,9 @@ Eigen::Matrix3d toGtsamR(Eigen::Vector3d const& v)
       aa = Eigen::Vector3d::Random();\
       aa[1] = 0;\
     }\
-    Eigen::Matrix3d R = toGtsamR<a1, a2, a3>(aa);\
+    Eigen::Matrix3d R = ToGtsamRotationMatrix<a1, a2, a3>(aa);\
     Eigen::Vector3d angles = eulerFromRotationMatrix<a1, a2, a3>(R);\
-    Eigen::Matrix3d R2 = toGtsamR<a1, a2, a3>(angles);\
+    Eigen::Matrix3d R2 = ToGtsamRotationMatrix<a1, a2, a3>(angles);\
     CHECK( R2.isApprox(R) ); \
   }\
   TEST_CASE(#a1 "_" #a2 "_" #a3 "_derivative")\
@@ -75,11 +68,8 @@ Eigen::Matrix3d toGtsamR(Eigen::Vector3d const& v)
     SECTION("Random"){\
       aa = Eigen::Vector3d::Random();\
     }\
-    auto wrap = [](auto&& ... args){\
-      return eulerFromRotationMatrix<a1, a2, a3>(std::forward<decltype(args)>(args) ... );\
-    };\
-    Eigen::Matrix3d R = toGtsamR<a1, a2, a3>(aa);\
-    auto num = numericalDerivative11<Eigen::Vector3d, Eigen::Matrix3d>(wrap, R);\
+    Eigen::Matrix3d R = ToGtsamRotationMatrix<a1, a2, a3>(aa);\
+    auto num = gtsam::numericalDerivative11(eulerFromRotationMatrix<a1, a2, a3>, R);\
     Eigen::Matrix<double, 3, 9> calc;\
     eulerFromRotationMatrix<a1, a2, a3>(R, calc);\
     CHECK( calc.isApprox(num, 1e-6) );\

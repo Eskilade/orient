@@ -1,10 +1,8 @@
 #include <fromRotationMatrix.hpp>
 
-#include <detail/trigonometric_derivatives.hpp>
-#include <detail/so3_generator.hpp>
 #include <detail/skewSymmetric.hpp>
-
-using namespace detail;
+#include <detail/so3_generator.hpp>
+#include <detail/trigonometric_derivatives.hpp>
 
 double trace(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 1, 9>> H)
 {
@@ -14,20 +12,20 @@ double trace(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 1, 9>> H
 
 Eigen::Vector3d errorVector(Eigen::Matrix3d const& R)
 {
-  return vectorFromSkewSymmetric(R - R.transpose());
+  return detail::vectorFromSkewSymmetric(R - R.transpose());
 }
 
 Eigen::Vector3d errorVector(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 3, 9>> H)
 {
   H = Eigen::Matrix<double, 3, 9>::Random();
-  H << generator<Axis::x>, generator<Axis::y>, generator<Axis::z>;
+  H << detail::generator<Axis::x>, detail::generator<Axis::y>, detail::generator<Axis::z>;
   return errorVector(R);
 }
 
 Eigen::Vector3d angleAxisFromRotationMatrix(Eigen::Matrix3d const& R)
 {
   const auto angle = std::acos((R.trace() - 1)/2);
-  return vectorFromSkewSymmetric(R - R.transpose()) * angle / (2*std::sin(angle));
+  return errorVector(R) * angle / (2*std::sin(angle));
 }
 
 Eigen::Vector3d angleAxisFromRotationMatrix(
@@ -52,7 +50,7 @@ Eigen::Vector3d angleAxisFromRotationMatrix(
 Eigen::Vector4d quaternionFromRotationMatrix(Eigen::Matrix3d const& R)
 {
   const auto qw = std::sqrt(R.trace() + 1.0)/2.0;
-  const Eigen::Vector3d vec = vectorFromSkewSymmetric(R - R.transpose()) / (4*qw);
+  const Eigen::Vector3d vec = errorVector(R) / (4*qw);
   return (Eigen::Vector4d() << qw, vec).finished();
 }
 
