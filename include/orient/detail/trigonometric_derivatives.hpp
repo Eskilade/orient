@@ -1,6 +1,6 @@
 #include <cmath>
 
-namespace detail {
+namespace orient::detail {
 
 using std::asin;
 inline double asin(double x, double& H)

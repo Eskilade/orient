@@ -1,9 +1,10 @@
 #pragma once 
 
-#include <axis.hpp>
+#include <orient/axis.hpp>
+
 #include <Eigen/Dense>
 
-namespace detail {
+namespace orient::detail {
 
 template<Axis axis>
 Eigen::Matrix3d make_generator()

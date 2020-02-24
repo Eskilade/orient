@@ -1,6 +1,7 @@
 #include <catch/catch2.hpp>
 
-#include <from_euler.hpp>
+#include <orient/from_euler.hpp>
+
 #include <gtsam/base/numericalDerivative.h>
 #include <gtsam/geometry/Rot3.h>
 
@@ -19,7 +20,7 @@
       angle = 0.2;\
     }\
     const Eigen::Matrix3d expected = gtsam::Rot3::R##a1(angle).matrix();\
-    Eigen::Matrix3d actual = rotationMatrixFromEuler<Axis::a1>(angle);\
+    Eigen::Matrix3d actual = orient::rotationMatrixFromEuler<orient::Axis::a1>(angle);\
     CHECK( actual.isApprox(expected) );\
   }\
   TEST_CASE(#a1 "_derivative")\
@@ -32,10 +33,10 @@
       angle = 0.2;\
     }\
     Eigen::Matrix3d H;\
-    rotationMatrixFromEuler<Axis::a1>(angle, H);\
+    orient::rotationMatrixFromEuler<orient::Axis::a1>(angle, H);\
     /* TODO: Investigate why a wrapper is needed here.
      * an unresolved overloaded function type error */\
-    auto numeric = gtsam::numericalDerivative11<Eigen::Matrix3d, double>(WRAP(rotationMatrixFromEuler<Axis::a1>), angle);\
+    auto numeric = gtsam::numericalDerivative11<Eigen::Matrix3d, double>(WRAP(orient::rotationMatrixFromEuler<orient::Axis::a1>), angle);\
     CHECK( H.isApprox(Eigen::Map<Eigen::Matrix3d>(numeric.data(), 3,3), 1e-10) );\
   }\
 
@@ -55,7 +56,7 @@
       gtsam::Rot3::R##a1(aa[0]).matrix()*\
       gtsam::Rot3::R##a2(aa[1]).matrix()*\
       gtsam::Rot3::R##a3(aa[2]).matrix();\
-    Eigen::Matrix3d actual = rotationMatrixFromEuler<Axis::a1, Axis::a2, Axis::a3>(aa);\
+    Eigen::Matrix3d actual = orient::rotationMatrixFromEuler<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>(aa);\
     CHECK( actual.isApprox(expected) );\
   }\
   TEST_CASE(#a1 "_" #a2 "_" #a3 "_derivative")\
@@ -69,9 +70,9 @@
       aa = Eigen::Vector3d::Random();\
     }\
     Eigen::Matrix<double, 9, 3> H;\
-    rotationMatrixFromEuler<Axis::a1, Axis::a2, Axis::a3>(aa, H);\
+    orient::rotationMatrixFromEuler<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>(aa, H);\
     const auto numeric = gtsam::numericalDerivative11(\
-                          rotationMatrixFromEuler<Axis::a1, Axis::a2, Axis::a3>, aa);\
+                          orient::rotationMatrixFromEuler<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>, aa);\
     CHECK( H.isApprox(numeric, 1e-10) );\
   }\
 

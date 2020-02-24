@@ -1,6 +1,6 @@
 #include <catch/catch2.hpp>
 
-#include <from_angle_axis.hpp>
+#include <orient/from_angle_axis.hpp>
 
 #include <Eigen/Geometry>
 #include <gtsam/base/numericalDerivative.h>
@@ -16,7 +16,7 @@ TEST_CASE("rotationMatrixFromAngleAxis")
     aa = Eigen::Vector3d::Zero();
   }
 
-  const auto calc = rotationMatrixFromAngleAxis(aa);
+  const auto calc = orient::rotationMatrixFromAngleAxis(aa);
   const auto act = gtsam::Rot3::Expmap(aa).matrix();
   CHECK( calc.isApprox(act) );
 }
@@ -32,8 +32,8 @@ TEST_CASE("rotationMatrixFromAngleAxis_derivative")
   }
 
   Eigen::Matrix<double, 9, 3> calc;
-  rotationMatrixFromAngleAxis(aa, calc);
-  auto numeric = gtsam::numericalDerivative11(rotationMatrixFromAngleAxis, aa);
+  orient::rotationMatrixFromAngleAxis(aa, calc);
+  auto numeric = gtsam::numericalDerivative11(orient::rotationMatrixFromAngleAxis, aa);
   CHECK( calc.isApprox(numeric, 1e-10) );
 }
 
@@ -74,7 +74,7 @@ TEST_CASE("quaternionFromAngleAxis")
   Eigen::Quaterniond equat{eaa};
 
   Eigen::Vector4d expected = (Eigen::Vector4d() << equat.w(), equat.vec()).finished();
-  Eigen::Vector4d actual = quaternionFromAngleAxis(aa);
+  Eigen::Vector4d actual = orient::quaternionFromAngleAxis(aa);
   CHECK( expected.isApprox(actual) );
 }
 TEST_CASE("quaternionFromAngleAxis_derivative")
@@ -109,7 +109,7 @@ TEST_CASE("quaternionFromAngleAxis_derivative")
   }
 
   Eigen::Matrix<double, 4, 3> calc;
-  quaternionFromAngleAxis(aa, calc);
-  auto numeric = gtsam::numericalDerivative11(quaternionFromAngleAxis, aa);
+  orient::quaternionFromAngleAxis(aa, calc);
+  auto numeric = gtsam::numericalDerivative11(orient::quaternionFromAngleAxis, aa);
   CHECK( calc.isApprox(numeric, 1e-10) );
 }

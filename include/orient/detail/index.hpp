@@ -1,6 +1,6 @@
 #pragma once
 
-namespace detail{
+namespace orient::detail {
 
 // A helper structure to hold element indicies in a matrix
 struct Index 

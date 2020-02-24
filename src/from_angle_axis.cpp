@@ -1,27 +1,28 @@
-#include <detail/skew_symmetric.hpp>
-#include <detail/so3_generator.hpp>
-#include <detail/trigonometric_derivatives.hpp>
+#include <orient/from_angle_axis.hpp>
 
-#include <axis.hpp>
-#include <from_angle_axis.hpp>
-#include <normalize.hpp>
+#include <orient/detail/skew_symmetric.hpp>
+#include <orient/detail/so3_generator.hpp>
+#include <orient/detail/trigonometric_derivatives.hpp>
 
-template<Axis axis>
+#include <orient/axis.hpp>
+#include <orient/normalize.hpp>
+
+template<orient::Axis axis>
 Eigen::Matrix3d rodriguesDerivative(Eigen::Vector3d const& aa)
 {
   const auto t2 = aa.dot(aa);
   if (t2 < std::numeric_limits<double>::epsilon()) {
-    return detail::generator<axis>;
+    return orient::detail::generator<axis>;
   }
   else {
     const auto t = std::sqrt(t2);
-    const auto a = aa[static_cast<std::underlying_type_t<Axis>>(axis)];
+    const auto a = aa[static_cast<std::underlying_type_t<orient::Axis>>(axis)];
     return 
-      detail::generator<axis> * std::sin(t) / t + 
-      detail::skewSymmetric(aa) * a * (t*std::cos(t) - std::sin(t)) / (t2*t) +
-      detail::generator<axis> * detail::skewSymmetric(aa) * (1 - std::cos(t))/t2 + 
-      detail::skewSymmetric(aa) * detail::generator<axis> * (1 - std::cos(t))/t2 + 
-      detail::skewSymmetric(aa) * detail::skewSymmetric(aa) * a * (t*std::sin(t) + 2*std::cos(t) - 2) / (t2*t2); 
+      orient::detail::generator<axis> * std::sin(t) / t + 
+      orient::detail::skewSymmetric(aa) * a * (t*std::cos(t) - std::sin(t)) / (t2*t) +
+      orient::detail::generator<axis> * orient::detail::skewSymmetric(aa) * (1 - std::cos(t))/t2 + 
+      orient::detail::skewSymmetric(aa) * orient::detail::generator<axis> * (1 - std::cos(t))/t2 + 
+      orient::detail::skewSymmetric(aa) * orient::detail::skewSymmetric(aa) * a * (t*std::sin(t) + 2*std::cos(t) - 2) / (t2*t2); 
   }
 }
 
@@ -35,10 +36,12 @@ Eigen::Matrix3d rodrigues(Eigen::Vector3d const& aa)
     const auto t = std::sqrt(t2);
     return 
       Eigen::Matrix3d::Identity() +
-      detail::skewSymmetric(aa) * std::sin(t) / t +
-      detail::skewSymmetric(aa) * detail::skewSymmetric(aa) * (1 - std::cos(t)) / t2; 
+      orient::detail::skewSymmetric(aa) * std::sin(t) / t +
+      orient::detail::skewSymmetric(aa) * orient::detail::skewSymmetric(aa) * (1 - std::cos(t)) / t2; 
   }
 }
+
+namespace orient {
 
 Eigen::Matrix3d rotationMatrixFromAngleAxis(Eigen::Vector3d const& aa)
 {
@@ -76,4 +79,6 @@ Eigen::Vector4d quaternionFromAngleAxis(Eigen::Vector3d const& aa, Eigen::Ref<Ei
   Eigen::Vector3d vec = sha * axis;
   H.block<3,3>(1,0) = axis * axis.transpose() * cha / 2 + sha * axisHaa;
   return (Eigen::Vector4d() << qw, vec).finished();
+}
+
 }

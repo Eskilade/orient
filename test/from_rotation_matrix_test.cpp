@@ -1,6 +1,6 @@
 #include <catch/catch2.hpp>
 
-#include <from_rotation_matrix.hpp>
+#include <orient/from_rotation_matrix.hpp>
 
 #include <Eigen/Geometry>
 #include <gtsam/base/numericalDerivative.h>
@@ -40,7 +40,7 @@ TEST_CASE("angleAxisFromRotationMatrix")
   Eigen::Matrix3d R = gtsam::Rot3::Rodrigues(aa).matrix();
   Eigen::AngleAxisd eaa{R};
   Eigen::Vector3d expected = eaa.angle() * eaa.axis();
-  const Eigen::Vector3d actual = angleAxisFromRotationMatrix(R);
+  const Eigen::Vector3d actual = orient::angleAxisFromRotationMatrix(R);
   std::cout << expected.transpose() << "\n";
   std::cout << actual.transpose() << "\n";
 }
@@ -79,7 +79,7 @@ TEST_CASE("quaternionFromRotationMatrix")
   Eigen::Matrix3d R = gtsam::Rot3::Rodrigues(aa).matrix();
   Eigen::Quaterniond equat{R};
   Eigen::Vector4d expected = (Eigen::Vector4d() << equat.w(), equat.vec()).finished();
-  const Eigen::Vector4d actual = quaternionFromRotationMatrix(R);
+  const Eigen::Vector4d actual = orient::quaternionFromRotationMatrix(R);
   std::cout << expected.transpose() << "\n";
   std::cout << actual.transpose() << "\n";
   std::cout << "-----\n";
@@ -89,8 +89,8 @@ TEST_CASE("angleAxisFromRotationMatrix_derivative")
 {
   const Eigen::Matrix3d R = Eigen::Matrix3d::Random();
   Eigen::Matrix<double, 3, 9> H;
-  angleAxisFromRotationMatrix(R, H);
-  auto num = gtsam::numericalDerivative11(angleAxisFromRotationMatrix, R);
+  orient::angleAxisFromRotationMatrix(R, H);
+  auto num = gtsam::numericalDerivative11(orient::angleAxisFromRotationMatrix, R);
   CHECK( H.isApprox(num, 1e-10) );
 }
 
@@ -98,7 +98,7 @@ TEST_CASE("quaternionFromRotationMatrix_derivative")
 {
   const Eigen::Matrix3d R = Eigen::Matrix3d::Random();
   Eigen::Matrix<double, 4, 9> H;
-  quaternionFromRotationMatrix(R, H);
-  auto num = gtsam::numericalDerivative11(quaternionFromRotationMatrix, R);
+  orient::quaternionFromRotationMatrix(R, H);
+  auto num = gtsam::numericalDerivative11(orient::quaternionFromRotationMatrix, R);
   CHECK( H.isApprox(num, 1e-10) );
 }

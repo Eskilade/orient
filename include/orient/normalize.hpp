@@ -2,6 +2,8 @@
 
 #include <Eigen/Dense>
 
+namespace orient {
+
 template<int N>
 Eigen::Matrix<double, N, 1> normalize(Eigen::Matrix<double, N, 1> const& v)
 {
@@ -32,4 +34,6 @@ Eigen::Matrix<double, N, 1> normalize(Eigen::Matrix<double, N, 1> const& v, type
   double n = std::sqrt(n2);
   H = - v * v.transpose() / ( n * n2) + Eigen::Matrix<double, N, N>::Identity() * 1.0 / n;
   return v / n;
+}
+
 }

@@ -1,11 +1,14 @@
 #pragma once
 
-#include <axis.hpp>
-#include <detail/axis_traits.hpp>
-#include <type_traits>
+#include <orient/axis.hpp>
+#include <orient/detail/axis_traits.hpp>
 
 #include <Eigen/Dense>
 
+#include <type_traits>
+
+namespace orient {
+
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isTaitBryan<A1,A2,A3>(), int> = 0>
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R);
 
@@ -17,10 +20,12 @@ Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R);
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isProperEuler<A1,A2,A3>(), int> = 0>
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 3, 9>> H);
+
+}
  
 /* imp */ 
-#include <detail/trigonometric_derivatives.hpp>
-#include <detail/skew_symmetric.hpp>
+#include <orient/detail/trigonometric_derivatives.hpp>
+#include <orient/detail/skew_symmetric.hpp>
 
 // @brief A helper class for accessing rotation matrix elements
 // that also takes into account the sign
@@ -31,28 +36,30 @@ public:
   Wrap(Eigen::MatrixBase<Derived> const& m):
       ref{m},
       sign_mat{Eigen::Matrix3d::Identity()+
-        detail::skewSymmetric(Eigen::Vector3d::Ones())}
+        orient::detail::skewSymmetric(Eigen::Vector3d::Ones())}
     {};
 
-  auto operator()(detail::Index const& e) const
+  auto operator()(orient::detail::Index const& idx) const
   {
-    return sign(e) * uncorrected(e);
+    return sign(idx) * uncorrected(idx);
   }
 
-  auto uncorrected(detail::Index const& e) const
+  auto uncorrected(orient::detail::Index const& idx) const
   {
-    return ref(e.r, e.c);
+    return ref(idx.r, idx.c);
   }
 
-  auto sign(detail::Index const& e) const
+  auto sign(orient::detail::Index const& idx) const
   {
-    return sign_mat(e.r, e.c);
+    return sign_mat(idx.r, idx.c);
   }
 
 private:
   Eigen::Ref<const Eigen::Matrix3d> ref;
   Eigen::Matrix3d sign_mat;
 };
+
+namespace orient {
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isTaitBryan<A1,A2,A3>(), int>>
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R)
@@ -208,3 +215,4 @@ void eulerFromRotationMatrix(Eigen::Matrix3d const&)
   static_assert( alwaysFalse, "Passed a malformed rotation sequence. Please choose either a propor euler sequence or a Tait-Bryan sequence");
 }
 
+}

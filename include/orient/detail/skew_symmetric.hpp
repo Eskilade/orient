@@ -1,7 +1,8 @@
 #pragma once
 
 #include <Eigen/Dense>
-namespace detail {
+
+namespace orient::detail {
 
 inline Eigen::Matrix3d skewSymmetric(double wx, double wy, double wz) {
   return (Eigen::Matrix3d() << 0.0, -wz, +wy, +wz, 0.0, -wx, -wy, +wx, 0.0).finished();

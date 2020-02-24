@@ -1,8 +1,8 @@
-#include <from_rotation_matrix.hpp>
+#include <orient/from_rotation_matrix.hpp>
 
-#include <detail/skew_symmetric.hpp>
-#include <detail/so3_generator.hpp>
-#include <detail/trigonometric_derivatives.hpp>
+#include <orient/detail/skew_symmetric.hpp>
+#include <orient/detail/so3_generator.hpp>
+#include <orient/detail/trigonometric_derivatives.hpp>
 
 double trace(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 1, 9>> H)
 {
@@ -12,15 +12,17 @@ double trace(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 1, 9>> H
 
 Eigen::Vector3d errorVector(Eigen::Matrix3d const& R)
 {
-  return detail::vectorFromSkewSymmetric(R - R.transpose());
+  return orient::detail::vectorFromSkewSymmetric(R - R.transpose());
 }
 
 Eigen::Vector3d errorVector(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 3, 9>> H)
 {
   H = Eigen::Matrix<double, 3, 9>::Random();
-  H << detail::generator<Axis::x>, detail::generator<Axis::y>, detail::generator<Axis::z>;
+  H << orient::detail::generator<orient::Axis::x>, orient::detail::generator<orient::Axis::y>, orient::detail::generator<orient::Axis::z>;
   return errorVector(R);
 }
+
+namespace orient {
 
 Eigen::Vector3d angleAxisFromRotationMatrix(Eigen::Matrix3d const& R)
 {
@@ -71,4 +73,6 @@ Eigen::Vector4d quaternionFromRotationMatrix(
   H.block<3,9>(1,0) = evHR / (4*qw) - ev / (4*qw*qw) * qwHR;
 
   return (Eigen::Vector4d() << qw, vec).finished();
+}
+
 }

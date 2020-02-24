@@ -1,9 +1,9 @@
 #pragma once
 
-#include <detail/index.hpp>
-#include <axis.hpp>
+#include <orient/detail/index.hpp>
+#include <orient/axis.hpp>
 
-namespace detail {
+namespace orient::detail {
 
 template<Axis a1, Axis a2>
 constexpr Axis missing()
@@ -36,32 +36,32 @@ constexpr bool isMalformed()
 template<Axis a1, Axis a2, Axis a3>
 struct TaitBryanTraits
 {
-  static constexpr auto a2s = detail::Index{
+  static constexpr auto a2s = Index{
     static_cast<std::underlying_type_t<Axis>>(a1),
     static_cast<std::underlying_type_t<Axis>>(a3)};
 
-  static constexpr auto a1s = detail::Index{
+  static constexpr auto a1s = Index{
     static_cast<std::underlying_type_t<Axis>>(a2),
     static_cast<std::underlying_type_t<Axis>>(a3)};
 
-  static constexpr auto a1c = detail::Index{
+  static constexpr auto a1c = Index{
     static_cast<std::underlying_type_t<Axis>>(a3),
     static_cast<std::underlying_type_t<Axis>>(a3)};
 
-  static constexpr auto a3s = detail::Index{
+  static constexpr auto a3s = Index{
     static_cast<std::underlying_type_t<Axis>>(a1),
     static_cast<std::underlying_type_t<Axis>>(a2)};
 
-  static constexpr auto a3c = detail::Index{
+  static constexpr auto a3c = Index{
     static_cast<std::underlying_type_t<Axis>>(a1),
     static_cast<std::underlying_type_t<Axis>>(a1)};
 
   struct GimbalLock {
-    static constexpr auto a1s = detail::Index{
+    static constexpr auto a1s = Index{
       static_cast<std::underlying_type_t<Axis>>(a2),
       static_cast<std::underlying_type_t<Axis>>(a1)};
 
-    static constexpr auto a1c = detail::Index{
+    static constexpr auto a1c = Index{
       static_cast<std::underlying_type_t<Axis>>(a2),
       static_cast<std::underlying_type_t<Axis>>(a2)};
   };
@@ -71,32 +71,32 @@ template<Axis a1, Axis a2>
 struct ProperEulerTraits
 {
   static constexpr Axis ma = missing<a1,a2>();
-  static constexpr auto a2c = detail::Index{
+  static constexpr auto a2c = Index{
     static_cast<std::underlying_type_t<Axis>>(a1),
     static_cast<std::underlying_type_t<Axis>>(a1)};
 
-  static constexpr auto a1s = detail::Index{
+  static constexpr auto a1s = Index{
     static_cast<std::underlying_type_t<Axis>>(a2),
     static_cast<std::underlying_type_t<Axis>>(a1)};
 
-  static constexpr auto a1c = detail::Index{
+  static constexpr auto a1c = Index{
     static_cast<std::underlying_type_t<Axis>>(ma),
     static_cast<std::underlying_type_t<Axis>>(a1)};
 
-  static constexpr auto a3s = detail::Index{
+  static constexpr auto a3s = Index{
     static_cast<std::underlying_type_t<Axis>>(a1),
     static_cast<std::underlying_type_t<Axis>>(a2)};
 
-  static constexpr auto a3c = detail::Index{
+  static constexpr auto a3c = Index{
     static_cast<std::underlying_type_t<Axis>>(a1),
     static_cast<std::underlying_type_t<Axis>>(ma)};
 
   struct GimbalLock {
-    static constexpr auto a1s = detail::Index{
+    static constexpr auto a1s = Index{
       static_cast<std::underlying_type_t<Axis>>(a2),
       static_cast<std::underlying_type_t<Axis>>(ma)};
 
-    static constexpr auto a1c = detail::Index{
+    static constexpr auto a1c = Index{
       static_cast<std::underlying_type_t<Axis>>(a2),
       static_cast<std::underlying_type_t<Axis>>(a2)};
   };

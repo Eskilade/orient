@@ -1,8 +1,12 @@
 #pragma once
 
-#include <detail/trigonometric_derivatives.hpp>
-#include <axis.hpp>
+#include <orient/detail/trigonometric_derivatives.hpp>
+
+#include <orient/axis.hpp>
+
 #include <Eigen/Dense>
+
+namespace orient {
 
 template<Axis axis>
 Eigen::Matrix3d rotationMatrixFromEuler(double angle)
@@ -69,4 +73,6 @@ Eigen::Matrix3d rotationMatrixFromEuler(Eigen::Vector3d const& angles, Eigen::Re
   Eigen::Map<Eigen::Matrix3d>(H.block<9,1>(0,1).data(), 3, 3) = R1 * H2 * R3;
   Eigen::Map<Eigen::Matrix3d>(H.block<9,1>(0,2).data(), 3, 3) = R1 * R2 * H3;
   return R1 * R2 * R3;
+}
+
 }
