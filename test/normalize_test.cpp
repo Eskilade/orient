@@ -14,12 +14,8 @@ TEST_CASE("normalize")
 
 TEST_CASE("normalize_derivative")
 {
-  auto wrap = boost::function<Eigen::Vector4d(Eigen::Vector4d const&)>{[](auto&& ... args){
-    return orient::normalize(std::forward<decltype(args)>(args) ... );
-  }};
-
   Eigen::Vector4d v = Eigen::Vector4d::Random();
-  auto num = gtsam::numericalDerivative11(wrap, v);
+  auto num = gtsam::numericalDerivative11(orient::normalize<4>, v);
   Eigen::Matrix<double, 4, 4> calc;
   orient::normalize(v, calc);
   CHECK( calc.isApprox( num, 1e-9) );
