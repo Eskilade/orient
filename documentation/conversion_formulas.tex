@@ -1,0 +1,490 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{bm}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+
+\usepackage[backend=biber,style=alphabetic,sorting=ynt,bibencoding=utf8]{biblatex}
+\addbibresource{sources.bib}
+
+\renewcommand\aa{\bm{\theta}}
+\renewcommand\t{\vartheta}
+\newcommand\R{\bm{R}}
+\newcommand\q{\bm{q}}
+\newcommand\I{\bm{I}}
+\renewcommand\u{\bm{u}}
+\renewcommand\v{\bm{v}}
+\renewcommand\skew[1]{[#1]_{\times}}
+\newcommand\Real{\mathbb{R}}
+\newcommand\norm[1]{\Vert#1\Vert}
+\newcommand\vecop[1]{\text{vec} \left( #1\right)}
+
+\DeclareMathOperator{\arctantwo}{arctan2}
+
+\begin{document}
+
+\title{Overview of 3D orientation transformations with Jacobians}
+\author{Christian V. Berg}
+\maketitle
+
+\date
+
+\begin{abstract}
+The abstract text goes here.
+\end{abstract}
+
+\tableofcontents
+\section{Symbols and notations}
+
+\begin{tabular}{l p{15cm}}
+  $\t \in \Real$ & Angle \\
+  $\R \in SO(3)$ & Rotation matrix \\
+  $\aa \in \Real^3$ & Axis-angle such that $\aa = \t \, \u$, $\t \in \Real$ and a unit vector $\u \in S^2$ \\
+  $\q \in S^3$ & Unit quaternion such that $\q = \begin{bmatrix} w \\ \v \end{bmatrix}$ \\
+  $\I \in \Real^{3\times3}$ & Identity matrix \\
+  $\bm{0} \in \Real^{3}$ & Zero vector \\
+  $ (.)^T : \Real^{m \times n} \to \Real^{n \times m}$ & Matrix transpose \\
+  $tr(.) : \Real^{n \times n} \to \Real$ & Matrix trace \\
+  $\skew{.} : \Real^3 \to  \Real^{3\times 3}$ & Skew symmetric matrix operator such that \newline
+  $\begin{bmatrix} x \\ y \\ z \end{bmatrix}_\times =
+  \begin{bmatrix}
+    0& - z & y \\ 
+    z & 0 & -x \\
+    -y & x & 0
+  \end{bmatrix}$ \\
+  $(.)^\vee : \Real^{3 \times 3} \to \Real^{3}$ & Vee operator such that
+  $\begin{bmatrix}
+    a_1& - z & y \\ 
+    z & a_2 & -x \\
+    -y & x & a_3
+  \end{bmatrix}^\vee = \begin{bmatrix} x \\ y \\ z \end{bmatrix}$ \newline Notice that $\left(\skew{\bm{d}}\right)^\vee = \bm{d}$ \\
+    $\vecop{.} : \Real^{m \times n} \to \Real^{m\,n}$ & Vectorization operator of a matrix such that \newline
+   $\vecop{\begin{bmatrix}
+    a_1 & a_3 \\ 
+    a_2 & a_4
+    \end{bmatrix}} = \begin{bmatrix} a_1 & a_2 & a_3 & a_4 \end{bmatrix}^T$ \\ [10pt]
+  $E_i \in \Real^{3 \times 3}$ & $i^{th}$ generator of $SO(3)$, such that \newline
+    $E_x = 
+    \begin{bmatrix}
+      0 & 0 & 0 \\ 
+      0 & 0 & -1\\ 
+      0 & 1 & 0
+    \end{bmatrix}
+    E_y = 
+    \begin{bmatrix}
+      0 & 0 & 1 \\ 
+      0 & 0 & 0\\ 
+      -1& 0 & 0
+    \end{bmatrix}
+    E_z = 
+    \begin{bmatrix}
+      0 & -1& 0 \\ 
+      1 & 0 & 0 \\ 
+      0 & 0 & 0
+    \end{bmatrix}$\\ [10pt] \\
+\end{tabular}
+
+I will use the notaion used in \cite{claraco_tutorial_nodate} for expressions
+involving derivatives of matricies. For instance,
+given functions $f : \Real^2 \to \Real^{2 \times 2}$ and $f_i : \Real^2 \to \Real$ such that 
+\begin{align}
+  f(\bm{p}) = f \left( \begin{bmatrix} x \\ y \end{bmatrix} \right) = \begin{bmatrix} f_1(x,y) & f_3(x,y) \\ f_2(x,y) & f_4(x,y) \end{bmatrix}
+\end{align}
+then 
+\begin{align}
+  \frac{\partial f(\bm{p})}{\partial \bm{p}} = \frac{\partial \vecop{f(\bm{p})}}{\partial \bm{p}} 
+  &= \begin{bmatrix} 
+      \frac{\partial \vecop{f(\bm{p})}}{\partial x} & 
+      \frac{\partial \vecop{f(\bm{p})}}{\partial y}
+    \end{bmatrix}
+  = \begin{bmatrix} 
+    \frac{\partial f_1(x,y)}{\partial x} & \frac{\partial f_1(x,y)}{\partial y}   \\[10pt]
+      \frac{\partial f_2(x,y)}{\partial x} & \frac{\partial f_2(x,y)}{\partial y} \\[10pt]
+      \frac{\partial f_3(x,y)}{\partial x} & \frac{\partial f_3(x,y)}{\partial y} \\[10pt]
+      \frac{\partial f_3(x,y)}{\partial x} & \frac{\partial f_4(x,y)}{\partial y}
+     \end{bmatrix}
+\end{align}
+
+Similarly, given functions $g : \Real^{2 \times 2} \to \Real^2$ and  $g_i : \Real^{2 \times 2} \to \Real$ such that 
+\begin{align}
+  g(M) = f \left( \begin{bmatrix} a_1 & a_3 \\ a_2 & a_4 \end{bmatrix}\right) = \begin{bmatrix} g_1(M) \\ g_2(M) \end{bmatrix}
+\end{align}
+then 
+\begin{align}
+  \frac{\partial g(M)}{\partial M} = \frac{\partial g(M)}{\partial \vecop{M}}
+  &= \begin{bmatrix} 
+      \frac{\partial g_1(M)}{\partial \vecop{M}} \\[5pt]
+      \frac{\partial g_2(M)}{\partial \vecop{M}}
+     \end{bmatrix}
+  = \begin{bmatrix} 
+      \frac{\partial g_1(M)}{\partial a_1} & \frac{\partial g_1(x,y)}{\partial a_2} &
+      \frac{\partial g_1(M)}{\partial a_3} & \frac{\partial g_1(x,y)}{\partial a_4}\\[5pt]
+      \frac{\partial g_2(M)}{\partial a_1} & \frac{\partial g_2(x,y)}{\partial a_2} &
+      \frac{\partial g_2(M)}{\partial a_3} & \frac{\partial g_2(x,y)}{\partial a_4}
+     \end{bmatrix}
+\end{align}
+
+Unless explicitly stated otherwise, the derivative of a matrix by a scalar remains the same as in normal matrix calculus, i.e. given functions $h : \Real \to \Real^{2 \times 2}$ and  $h_i : \Real \to \Real$ such that 
+\begin{align}
+  h(x) = \begin{bmatrix} h_1(x) & h_3(x) \\ h_2(x) & h_4(x) \end{bmatrix}
+\end{align}
+then 
+\begin{align}
+  \frac{\partial f(x)}{\partial x} =
+    \begin{bmatrix} 
+      \frac{\partial h_1(x)}{\partial x} & \frac{\partial h_3(x)}{\partial x} \\[10pt]
+      \frac{\partial h_2(x)}{\partial x} & \frac{\partial h_4(x)}{\partial x}
+     \end{bmatrix}
+\end{align}
+
+Similarly, and unless explicitly stated otherwise, the derivative of a scalar by a matrix remains the same as in normal matrix calculus, i.e. given a function $t : \Real^{2 \times 2} \to \Real$, then
+\begin{align}
+  \frac{\partial t(M)}{\partial M} =
+    t \left( \begin{bmatrix} 
+      a_1 & a_3 \\
+      a_2 & a_4
+    \end{bmatrix} \right)= 
+    \begin{bmatrix} 
+      \frac{\partial t(M)}{\partial a_1} & \frac{\partial t(M)}{\partial a_3} \\[10pt]
+      \frac{\partial t(M)}{\partial a_2} & \frac{\partial t(M)}{\partial a_4}
+     \end{bmatrix}
+\end{align}
+
+Finally, notice that 
+\begin{align}
+  \frac{\partial f(\bm{p})}{\partial \bm{p}}
+  &= \begin{bmatrix} 
+      \vecop{\frac{\partial f(\bm{p})}{\partial x}} & 
+      \vecop{\frac{\partial f(\bm{p})}{\partial y}}
+    \end{bmatrix}\\
+  \frac{\partial g(M)}{\partial M} 
+  &= \begin{bmatrix} 
+      \vecop{\frac{\partial g_1(M)}{\partial M}}^T \\[5pt]
+      \vecop{\frac{\partial g_2(M)}{\partial M}}^T
+     \end{bmatrix}
+\end{align}
+
+\section{Rotation matrix and axis-angle}
+\subsection{Rotation matrix from axis-angle}
+This transformation is provided by Rodrigues' rotation formula, and gives a closed form expression of the exponential map of $SO(3)$:
+\begin{align}
+  \R = \exp(\skew{\aa}) = \I + \frac{\sin \t}{\t} \skew{\aa} + \frac{1 - \cos \t}{\t^2} \skew{\aa}^2 
+\end{align}
+
+First order Taylor approximation at $\aa = \bm{0}$
+\begin{align}
+  \R = \exp(\skew{\aa}) = \I + \skew{\aa} + O(\skew{\aa}^2) \approx \I + \skew{\aa}
+\end{align}
+
+\subsection{Rotation matrix from axis-angle Jacobian}
+Since the expression is fairly long, we will define 2 intermediate functions:
+\begin{align}
+  k_1(\t) = \frac{\sin{\t}}{\t} \;\;&,\;\;
+  \frac{\partial k_1(\t)}{\partial \t} = \frac{\t\cos{\t} - \sin{\t}}{\t^2} \\
+  k_2(\t) = \frac{1-\cos{\t}}{\t^2} \;\;&,\;\;
+  \frac{\partial k_2(\t)}{\partial \t} = \frac{\t\sin{\t} - 2\left(1-\cos{\t} \right)}{\t^3}
+\end{align}
+
+For both functions, we have
+\begin{align}
+  \frac{\partial k(\t)}{\partial \aa} &= 
+    \frac{\partial k(\t)}{\partial \t} \frac{\t}{\partial \aa} =
+    \frac{\partial k(\t)}{\partial \t} \frac{\sqrt{\aa^T\aa}}{\partial \aa} =
+    \frac{\partial k(\t)}{\partial \t} \frac{\aa^T}{\t}
+\end{align}
+
+Using the Kronecker product $\otimes$, it then follows
+\begin{align}
+  \frac{\partial \vecop{k_1(\t) \skew{\aa}}}{\partial \aa}  
+  &= \left( \I \otimes k_1(\t)\I \right) \frac{\partial \vecop{\skew{\aa}}}{\partial \aa}
+    + \left(\skew{\aa}^T \otimes \I \right) \frac{\partial \vecop{k_1{\t}\I}}{\partial \aa} \\
+  &= k_1(\t) \frac{\partial \vecop{\skew{\aa}}}{\partial \aa}
+    - \left(\skew{\aa} \otimes \I \right) \vecop{\I} \frac{\partial k_1(\t)}{\partial \t} \frac{\aa^T}{\t}
+\end{align}
+
+where we used $\skew{.}^T = - \skew{.}$. Next, we also have
+\begin{align}
+  \frac{\partial \vecop{k_2(\t) \skew{\aa}^2}}{\partial \aa}  
+  &= \left( \I \otimes k_2(\t)\I \right) \frac{\partial \vecop{\skew{\aa}^2}}{\partial \aa}
+    + \left({\skew{\aa}^2}^T \otimes \I \right) \frac{\partial \vecop{k_2{\t}\I}}{\partial \aa} \\
+  &= k_2(\t) \frac{\partial \vecop{\skew{\aa}^2}}{\partial \aa}
+    + \left({\skew{\aa}^2} \otimes \I \right) \vecop{\I} \frac{\partial k_2(\t)}{\partial \t} \frac{\aa^T}{\t}
+\end{align}
+
+where we used ${\skew{.}^2}^T = \skew{.}^2$. Putting it all together, we get:
+
+\begin{align}
+  \frac{\partial \vecop{\R}}{\partial \aa} = 
+    \frac{\partial \vecop{k_1(\t) \skew{\aa}}}{\partial \aa}  
+    + \frac{\partial \vecop{k_2(\t) \skew{\aa}^2}}{\partial \aa}  
+\end{align}
+
+When $\t = 0$, we reuse the exponential map of $SO(3)$ to deduce that 
+\begin{align}
+  \left. \frac{\partial \vecop{\R}}{\partial \aa} \right \vert_{\aa = \bm{0}} =
+  \left. \frac{\partial \vecop{\exp(\skew{\aa})}}{\partial \aa_i} \right \vert_{\aa = \bm{0}} \approx
+  \left. \frac{\partial \vecop{\I + \skew{\aa}}}{\partial \aa_i} \right \vert_{\aa = \bm{0}} =
+  \frac{\partial \vecop{\skew{\aa}}}{\partial \aa}
+\end{align}
+
+\subsection{Axis-angle from rotation matrix}
+We begin by retrieving the angle $\t$:
+\begin{align}
+  tr(\R) 
+    &= tr(\I) + \frac{\sin \t }{\t} tr(\skew{\aa}) + \frac{1 - \cos \t}{\t^2} tr(\skew{\aa}^2) \\
+    &= 3 - 2 (1 - \cos \t) \\
+  \t &=  \arccos \frac{tr(\R) - 1}{2}
+\end{align}
+
+where we used $tr(\skew{\aa}^2) =  - 2 \aa^T \aa = -2\t^2$ and $tr(\skew{.}) = 0$.
+
+Next, and assuming $\t \neq 0 \iff tr(\R) \neq 3$ and $\t \neq \pi \iff tr(\R) \neq -1$ then
+\begin{align}
+  \R - \R^T 
+    &= \frac{\sin{\t}}{\t} \left(\skew{\aa} - \skew{\aa}^T\right)
+    + \frac{1 - \cos \t}{\t^2} \left( \skew{\aa}^2 - \skew{\aa}^{2^T} \right) \\
+    &= \frac{2\, \sin \t}{\t} \skew{\aa} \\
+  \aa &= \frac{\t \, \left(\R - \R^T \right)^\vee }{2\, \sin \t}
+\end{align}
+
+When $\t$ is close to $0 \iff tr(\R)$ close to $3$, we can reuse the first
+order Taylor approximation from before:
+
+\begin{align}
+  \aa \approx \left( \R - \I \right)^\vee
+\end{align}
+
+When $\t = \pi \iff tr(\R) = -1$
+\begin{align}
+  \R = \I + \frac{2}{\t^2} \skew{\aa}^2 
+  &= \I + 2\skew{\u}^2 \\
+  &= \I + 2\, (\u \u^T - \I) \\
+  \u \u^T = \frac{\R + \I }{2}
+\end{align}
+
+where we used $\skew{\u}^2 =  \u \u^T - \u^T \u \I$ and $\u^T \u = 1$ by definition.
+Since $\u \u^T$ has the form:
+\begin{align}
+  \u \u^T = 
+  \begin{bmatrix}
+    \u_x^2 & \u_x \u_y & \u_x \u_z \\
+    \u_y \u_x & \u_y^2 & \u_y \u_z \\
+    \u_z \u_x & \u_z \u_y & \u_z^2
+  \end{bmatrix}
+\end{align}
+
+we know that the largest element of the diagonal corresponds to the most
+significant axis of rotation. Since $\t=\pi$ then the largest diagonal element
+is always different from zero. Therefore, we take the square root of the largest
+diagonal element, then use it to divide its corresponding column vector in
+order to retrieve $\u$. Note that we cannot deduce the sign of $\u$, only the
+relative "sign-ness" of each element.
+
+\begin{align}
+  \u = \pm 
+    \frac{col_i \left[ \frac{\R + \I}{2} \right] }
+         {\sqrt{diag_i \left[ \frac{\R + \I }{2} \right] }}
+  \;,\; i = argmax \;\; diag \left( \frac{\R + \I }{2} \right)
+\end{align}
+
+So finally
+\begin{align}
+  \aa = \pm \pi
+    \frac{col_i \left[ \frac{\R + \I}{2} \right] }
+         {\sqrt{diag_i \left[ \frac{\R + \I }{2} \right] }}
+  \;,\; i = argmax \;\; diag \left( \frac{\R + \I }{2} \right)
+\end{align}
+
+\subsection{Axis-angle from rotation matrix Jacobian}
+Once again we will define an intermediate function and variable:
+\begin{align}
+  k_3(\t) = \frac{\t}{2\sin{\t}} \;\;&,\;\;
+  \frac{\partial k_3(\t)}{\partial \t} = 
+    \left(1 - \frac{\t}{\tan{\t}} \right) \frac{1}{2\sin{\t}} \\
+  x = \frac{tr(\R) - 1}{2} \;\;&,\;\; \t = \arccos(x)
+\end{align}
+
+Consequently, we have
+\begin{align}
+  \frac{\partial k_3(\t)}{\partial tr(\R)} 
+  &=\frac{\partial k_3(\t)}{\partial \t} 
+    \frac{\partial \t}{\partial x} 
+    \frac{\partial x}{\partial tr(\R)} \\
+  &=-\frac{\partial k_3(\t)}{\partial \t} 
+    \frac{1}{2\sqrt{1-\t^2}}
+\end{align}
+
+Assuming $\t \neq 0 \iff tr(\R) \neq 3$ and $\t \neq \pi \iff tr(\R) \neq -1$, then
+\begin{align}
+  \frac{\partial \vecop{\aa}}{\partial \vecop{\R}} = 
+    \big({(\R - \R^T)^\vee}^T \otimes \I \big)
+    \vecop{\I}
+    \frac{\partial k_3(\t)}{\partial tr(\R)} 
+    \frac{\partial tr(\R)}{\partial \vecop{\R}} + 
+    k_3(\t) \frac{\partial \left( \R - \R^T \right)^\vee}{\partial \vecop{\R}}
+\end{align}
+
+When $\t = 0 \iff tr(\R) = 3$, then 
+\begin{align}
+  \left. \frac{\partial \aa}{\partial \vecop{\R}} \right \vert_{\aa = \bm{0}} \approx
+    \frac{\partial \left(\R - \I \right)^\vee}{\partial \vecop{\R}}
+\end{align}
+
+\section{Rotation matrix and quaternion}
+\subsection{Rotation matrix from quaternion}
+\begin{align}
+  \R = \I + 2 \; w \; \skew{\v} + 2\; \skew{\v}^2
+\end{align}
+
+\subsection{Rotation matrix from quaternion Jacobian}
+\begin{align}
+  \frac{\partial \vecop{\R}}{\partial w} &= 2\, \vecop{\skew{\v}} \\
+  \frac{\partial \vecop{\R}}{\partial \v} &= 
+  2w \frac{\partial\vecop{\skew{\v}}}{\partial \v} +
+  2 \frac{\partial\vecop{\skew{\v}^2}}{\partial \v} \\
+  \frac{\partial \vecop{\R}}{\partial \q} &= 
+    \begin{bmatrix}
+      \frac{\partial \vecop{\R}}{\partial w} & 
+      \frac{\partial \vecop{\R}}{\partial \v}
+    \end{bmatrix}
+\end{align}
+
+\subsection{Quaternion from rotation matrix}
+We begin by retrieving the scale component of the quaternion:
+\begin{align}
+  tr(\R) 
+    &= tr(\I) + 2\; w \; tr(\skew{\v}) + 2 \; tr(\skew{\v}^2) \\
+    &= 3 - 4 \v^t \v = 4\;w^2 - 1 \\
+  w &= \pm \frac{ \sqrt{ tr(\R) + 1} }{2}
+\end{align}
+
+Assuming $w \neq 0 \iff tr(\R) \neq -1$
+\begin{align}
+  \R - \R^T
+    &= 2\; w \; \left( \skew{\v} - \skew{\v}^T \right) + 2 \; \left(\skew{\v}^2 - {\skew{\v}^2}^T \right) \\
+    &= 4\; w \; \skew{\v} \\
+  \v &= \frac{\left( \R -\R^T \right)^\vee}{4\;w}
+\end{align}
+
+When $w = 0$, then
+\begin{align}
+  \R &= \I + 2 \skew{\v}^2  = \I + 2 \left ( \v \v^T - \I \right) \\
+  \v \v^T &= \frac{\R + \I}{2}
+\end{align}
+
+and we can reuse the same method as for axis-angle when $\t = \pi$.
+
+\subsection{Quaternion from rotation matrix Jacobian}
+As before, we define
+\begin{align}
+  k_4(w) = \frac{1}{4w} \;\;,\;\; \frac{\partial k_4(w)}{\partial w} = -\frac{1}{4w^2}
+\end{align}
+
+Assuming $w \neq 0 \iff tr(\R) \neq -1$
+\begin{align}
+  \frac{\partial w}{\partial \vecop{\R}}
+    &=\frac{\partial w}{\partial tr(\R)} \frac{\partial tr(\R)}{\partial \vecop{\R}}
+    = \frac{1}{4\sqrt{tr(\R) + 1}} \frac{\partial tr(\R)}{\partial \R} \\
+  \frac{\partial \v}{\partial \vecop{\R}}
+    &= \big({\left(\R - \R^T\right)^\vee}^T \otimes \I \big)\frac{\partial k_4(w)}{\partial w}\frac{\partial w}{\partial \vecop{\R}}
+    + k_4(w) \frac{\partial \left(\R - \R^T\right)^\vee }{\partial \vecop{\R}}
+\end{align}
+
+\section{Axis-angle and quaternion}
+\subsection{Quaternion from axis-angle}
+\begin{align}
+  \q = 
+    \begin{bmatrix} 
+       \cos{ \frac{\t}{2} } \\[5pt]
+       \frac{\sin{ \frac{\t}{2} }}{\t} \aa
+    \end{bmatrix}
+\end{align}
+
+When $\t$ is close to $0$, then the second order Taylor approximation is
+\begin{align}
+  \q \approx
+    \begin{bmatrix} 
+      1 - \frac{\t^2}{8} \\[5pt]
+      \left( \frac{1}{2} - \frac{\t^2}{48} \right) \aa
+    \end{bmatrix}
+\end{align}
+
+\subsection{Quaternion from axis-angle Jacobian}
+\begin{align}
+  \frac{\partial w}{\partial \aa} 
+  &=  \frac{\partial w}{\partial \t} \frac{\partial \t}{\partial \aa}  \\
+  &=-\frac{\sin{\frac{\t}{2}}}{2} \frac{\aa^T}{\t}  \\
+     \frac{\partial \v}{\partial \aa} &= 
+  \aa \frac{\partial \frac{\sin{ \frac{\t}{2} }}{\t}}{\partial \aa} + 
+  \frac{\sin{ \frac{\t}{2} }}{\t} \frac{\partial \aa}{\partial \aa}\\
+  &= \aa \frac{\partial \frac{\sin{ \frac{\t}{2} }}{\t}}{\partial \t} \frac{\partial \t}{\partial \aa}  + 
+  \frac{\sin{ \frac{\t}{2} }}{\t} \I \\
+  &= 
+     \aa \frac{\t \, \cos{\frac{\t}{2}} - 2\,\sin{\frac{\t}{2}}}{2\,\t^2} \frac{\aa^T}{\t}
+    + \frac{\sin{\frac{\t}{2}}}{\t} \I
+\end{align}
+
+When $\t$ is close to $0$, then
+\begin{align}
+  \left. \frac{\partial w}{\partial \aa} \right \vert_{\aa = 0} &\approx - \frac{1}{4} \aa^T \\
+  \left. \frac{\partial w}{\partial \aa} \right \vert_{\aa = 0} &\approx - \frac{1}{24} \aa \aa^T + \left(\frac{1}{2} - \frac{\t^2}{48} \right) \I
+\end{align}
+
+and finally
+
+\begin{align}
+  \frac{\partial \q}{\partial \aa} = 
+    \begin{bmatrix}
+      \frac{\partial w}{\partial \aa} \\[5pt]
+      \frac{\partial \v}{\partial \aa}
+    \end{bmatrix}
+\end{align}
+
+\subsection{Axis-angle from quaternion}
+Using $y=\sqrt{\v^T\v}$
+\begin{align}
+  \aa = 2 \frac{\arctantwo \left(y, w \right)}{y} \v 
+\end{align}
+
+When $w$ approach $1$ from the left $\iff \t$ close to $0$, we can reuse the second order Taylor approximation from before to deduce
+\begin{align}
+  \aa \approx \frac{6\v}{w+2}
+\end{align}
+
+\subsection{Axis-angle from quaternion Jacobian}
+Once again we define an intermediate function
+\begin{align}
+  k_5(y,x) &= 2 \frac{\arctantwo \left(y, w \right)}{y} \\
+  \frac{\partial k_5(y,x)}{\partial x} &= \frac{-2}{y^2 + w^2} = -2 \\
+  \frac{\partial k_5(y,x)}{\partial y} &= 2 \frac{ \frac{w\,y}{y^2 + w^2} - \arctantwo \left(y, w \right)}{y^2} = 2 \frac{ w\,y - \arctantwo \left(y, w \right)}{y^2}
+\end{align}
+where we used $y^2 + w^2 = \q^T \q = 1$ since we are assuming unit quaternions. It then follows:
+\begin{align}
+  \frac{\partial \aa}{\partial w} &= \frac{\partial k_5(y,w)}{\partial w} \v \\
+  \frac{\partial \aa}{\partial \v} 
+  &= \v \frac{\partial k_5(y,w)}{\partial y} \frac{\partial y}{\partial \v} + k_5(y,w) \I
+  =  \v \frac{\partial k_5(y,w)}{\partial y} \frac{\v^T}{y} + k_5(y,w) \I
+\end{align}
+
+When $w$ approach $1$ from the left $\iff \t$ close to $0$, then
+\begin{align}
+  \left. \frac{\partial \aa}{\partial w} \right \vert_{w = 1^-} &\approx - \frac{6}{\left( w + 2 \right)^2} \v \\
+  \left. \frac{\partial \aa}{\partial \v} \right \vert_{w = 1^-} &\approx \frac{6}{w + 2} \I
+\end{align}
+
+and finally
+
+\begin{align}
+  \frac{\partial \aa}{\partial \q} = 
+    \begin{bmatrix}
+      \frac{\partial \aa}{\partial w} &
+      \frac{\partial \aa}{\partial \v}
+    \end{bmatrix}
+\end{align}
+
+
+\printbibliography
+
+\end{document}
