@@ -3,6 +3,7 @@
 #include <orient/detail/skew_symmetric.hpp>
 #include <orient/detail/so3_generator.hpp>
 #include <orient/detail/trigonometric_derivatives.hpp>
+#include <orient/detail/kronecker_product.hpp>
 
 template<class T>
 typename std::enable_if<not std::numeric_limits<T>::is_integer, bool>::type
@@ -21,6 +22,15 @@ double trace(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 1, 9>> H
   return R.trace();
 }
 
+Eigen::Matrix<double, 9, 9> transposePD()
+{
+  Eigen::Matrix<double, 9,9> H = Eigen::Matrix<double, 9,9>::Identity();
+  H.col(1).swap(H.col(3));
+  H.col(2).swap(H.col(6));
+  H.col(5).swap(H.col(7));
+  return H;
+}
+
 std::tuple<double, Eigen::Matrix<double, 1, 9>> traceWPD(Eigen::Matrix3d const& R)
 {
   Eigen::Matrix<double, 1, 9> H;
@@ -30,7 +40,7 @@ std::tuple<double, Eigen::Matrix<double, 1, 9>> traceWPD(Eigen::Matrix3d const& 
 
 Eigen::Vector3d errorVector(Eigen::Matrix3d const& R)
 {
-  return orient::detail::vectorFromSkewSymmetric(R - R.transpose());
+  return orient::detail::unskewSymmetric(R - R.transpose());
 }
 
 std::tuple<Eigen::Vector3d, Eigen::Matrix<double, 3, 9>>
@@ -49,8 +59,12 @@ Eigen::Vector3d angleAxisFromRotationMatrix(Eigen::Matrix3d const& R)
   const auto trace = R.trace();
   if( almost_equal(trace, 3.0, 10) ){
     // angle is close to 2*k*pi
-    return orient::detail::vectorFromSkewSymmetric(R);
+    // Should be minus I but the diagonal does not change anything
+    return orient::detail::unskewSymmetric(R);
   } else if( almost_equal(trace, -1.0, 10) ){
+    // Derivative is possibly not defined here. There are 2 solutions, as
+    // Theta and minus Theta would produce the same result ?
+    // soluation possible
     // angle is close to (2*k + 1)*pi
     const Eigen::Matrix3d uut = (R + Eigen::Matrix3d::Identity()) / 2;
     int max_i;
@@ -59,7 +73,7 @@ Eigen::Vector3d angleAxisFromRotationMatrix(Eigen::Matrix3d const& R)
   } else {
     const auto arg = (trace - 1)/2; 
     const auto angle = arg + 1 > std::numeric_limits<double>::epsilon() ? std::acos(arg) : M_PI;
-    return errorVector(R) * angle / (2*std::sin(angle));
+    return detail::unskewSymmetric(R - R.transpose()) * angle / (2*std::sin(angle));
   }
 }
 
@@ -67,17 +81,33 @@ Eigen::Vector3d angleAxisFromRotationMatrix(
     Eigen::Matrix3d const& R,
     Eigen::Ref<Eigen::Matrix<double, 3, 9>> H)
 {
-  const auto[tr, trHR] = traceWPD(R);
-  const auto arg = 0.5*(tr - 1.0);
-  Eigen::Matrix<double, 1 , 9> argHR = 0.5 * trHR;
-  double angleHarg;
-  auto angle = detail::acos(arg, angleHarg);
-  Eigen::Matrix<double, 1, 9> angleHR = angleHarg * argHR;
-  const auto [ev, evHR] = errorVectorWPD(R);
-  double k = angle / (2*std::sin(angle));
-  double kHangle =  - 0.5 * (angle * std::cos(angle) / std::sin(angle) - 1) / std::sin(angle);
-  H = ev * kHangle * angleHR + evHR * k;
-  return ev * k;
+  const auto [tr, trHR] = traceWPD(R);
+  if( almost_equal(tr, 3.0, 10) ){
+    const auto [ev, evHR] = detail::unskewSymmetricWPD(R);
+    H = evHR;
+    return ev;
+  }
+  const auto x = 0.5*(tr - 1.0);
+
+  const auto angle = std::acos(x);
+  const auto angleHtr = -1./(2.*std::sqrt(1.-x*x));
+
+  const auto sin = std::sin(angle);
+
+  const auto k3 = 0.5*angle/sin;
+  const auto k3Hangle = 0.5*(1. - angle/std::tan(angle))/sin;
+
+  const Eigen::Matrix3d eR = R - R.transpose();
+  const Eigen::Matrix<double, 9, 9> eRHR = Eigen::Matrix<double, 9, 9>::Identity() - transposePD();
+
+  const auto [ev, evHeR] = detail::unskewSymmetricWPD(eR);
+
+  const Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
+  Eigen::Map<const Eigen::Matrix<double, 9, 1>> vecI{I.data(), I.size()};
+
+  H = detail::kroneckerProduct(ev.transpose(), I) * vecI *k3Hangle * angleHtr * trHR 
+    + k3 * evHeR * eRHR;
+   return k3 * ev;
 }
 
 Eigen::Vector4d quaternionFromRotationMatrix(Eigen::Matrix3d const& R)
@@ -92,11 +122,10 @@ Eigen::Vector4d quaternionFromRotationMatrix(Eigen::Matrix3d const& R)
     int max_i;
     const auto vi = std::sqrt(vvt.diagonal().maxCoeff(&max_i));
     return (Eigen::Vector4d() << 0, vvt.block<3,1>(0, max_i) / vi).finished();
-  } else {
-    const auto qw = std::sqrt(tr + 1.0)/2.0;
-    const Eigen::Vector3d vec = errorVector(R) / (4*qw);
-    return (Eigen::Vector4d() << qw, vec).finished();
   }
+  const auto w = 0.5*std::sqrt(tr + 1.0);
+  const Eigen::Vector3d v = 0.25*detail::unskewSymmetric(R - R.transpose()) / w;
+  return (Eigen::Vector4d() << w, v).finished();
 }
 
 Eigen::Vector4d quaternionFromRotationMatrix(
@@ -104,16 +133,29 @@ Eigen::Vector4d quaternionFromRotationMatrix(
     Eigen::Ref<Eigen::Matrix<double, 4, 9>> H)
 {
   const auto [tr, trHR] = traceWPD(R);
-  const auto qw = std::sqrt(tr + 1)/2;
-  Eigen::Matrix<double, 1 , 9> qwHR = 0.25/std::sqrt(tr+1) * trHR;
 
-  const auto [ev, evHR] = errorVectorWPD(R);
-  const Eigen::Vector3d vec = ev/(4*qw);
+  const auto w = 0.5*std::sqrt(tr + 1.0);
+  Eigen::Matrix<double, 1 , 9> wHR = 0.25/std::sqrt(tr+1) * trHR;
 
-  H.block<1,9>(0,0) = qwHR;
-  H.block<3,9>(1,0) = evHR / (4*qw) - ev / (4*qw*qw) * qwHR;
+  const auto k4 = 0.25/w;
+  const auto k4Hw = - k4/w;
+ 
+  const Eigen::Matrix3d eR = R - R.transpose();
+  const Eigen::Matrix<double, 9, 9> eRHR = Eigen::Matrix<double, 9, 9>::Identity() - transposePD();
 
-  return (Eigen::Vector4d() << qw, vec).finished();
+  const auto [ev, evHeR] = detail::unskewSymmetricWPD(eR);
+
+  const Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
+  Eigen::Map<const Eigen::Matrix<double, 9, 1>> vecI{I.data(), I.size()};
+
+  const Eigen::Vector3d v = 0.25*detail::unskewSymmetric(R - R.transpose()) / w;
+  Eigen::Matrix<double, 3 , 9> vHR = detail::kroneckerProduct(ev.transpose(), I) * vecI *k4Hw * wHR 
+    + k4 * evHeR * eRHR;
+
+  H.block<1,9>(0,0) = wHR;
+  H.block<3,9>(1,0) = vHR;
+
+  return (Eigen::Vector4d() << w, v).finished();
 }
 
 }

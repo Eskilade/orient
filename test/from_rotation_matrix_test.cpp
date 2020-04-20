@@ -14,29 +14,36 @@ TEST_CASE("angleAxisFromRotationMatrix")
     aa = Eigen::Vector3d::Zero();
   }
   SECTION("Random"){
+    std::srand(1);
     aa = Eigen::Vector3d::Random();
   }
   SECTION("half_PI_angle"){
+    std::srand(2);
     aa = Eigen::Vector3d::Random();
     aa *= M_PI / (2*aa.norm());
   }
   SECTION("minus_half_PI_angle"){
+    std::srand(3);
     aa = Eigen::Vector3d::Random();
     aa *= -M_PI / (2*aa.norm());
   }
   SECTION("PI_angle"){
+    std::srand(4);
     aa = Eigen::Vector3d::Random();
     aa *= M_PI / aa.norm();
   }
   SECTION("minus_PI_angle"){
+    std::srand(5);
     aa = Eigen::Vector3d::Random();
     aa *= -M_PI / aa.norm();
   }
   SECTION("2PI_angle"){
+    std::srand(6);
     aa = Eigen::Vector3d::Random();
     aa *= 2*M_PI / aa.norm();
   }
   SECTION("minus_2PI_angle"){
+    std::srand(7);
     aa = Eigen::Vector3d::Random();
     aa *= -2*M_PI / aa.norm();
   }
@@ -75,6 +82,7 @@ TEST_CASE("quaternionFromRotationMatrix")
     aa = Eigen::Vector3d::Zero();
   }
   SECTION("Random"){
+    std::srand(0);
     aa = Eigen::Vector3d::Random();
   }
   SECTION("half_PI_angle"){
@@ -132,18 +140,55 @@ TEST_CASE("quaternionFromRotationMatrix")
 
 TEST_CASE("angleAxisFromRotationMatrix_derivative")
 {
-  const Eigen::Matrix3d R = Eigen::Matrix3d::Random();
+  std::srand(7);
+  Eigen::Vector3d aa;
+  SECTION("Random"){
+    std::srand(0);
+    aa = Eigen::Vector3d::Random();
+  }
+  SECTION("half_PI_angle"){
+    aa = Eigen::Vector3d::Random();
+    aa *= M_PI / (2 * aa.norm());
+  }
+  SECTION("minus_half_PI_angle"){
+    aa = Eigen::Vector3d::Random();
+    aa *= -M_PI / (2*aa.dot(aa));
+  }
+  Eigen::Matrix3d R = gtsam::Rot3::Rodrigues(aa).matrix();
+
   Eigen::Matrix<double, 3, 9> H;
   orient::angleAxisFromRotationMatrix(R, H);
   auto num = gtsam::numericalDerivative11(orient::angleAxisFromRotationMatrix, R);
-  CHECK( H.isApprox(num, 1e-10) );
+  CHECK( H.isApprox(num, 1e-8) );
 }
 
 TEST_CASE("quaternionFromRotationMatrix_derivative")
 {
-  const Eigen::Matrix3d R = Eigen::Matrix3d::Random();
+  std::srand(8);
+  Eigen::Vector3d aa;
+  SECTION("Zero"){
+    aa = Eigen::Vector3d::Zero();
+  }
+  SECTION("Random"){
+    std::srand(0);
+    aa = Eigen::Vector3d::Random();
+  }
+  SECTION("half_PI_angle"){
+    aa = Eigen::Vector3d::Random();
+    aa *= M_PI / (2 * aa.norm());
+  }
+  SECTION("minus_half_PI_angle"){
+    aa = Eigen::Vector3d::Random();
+    aa *= -M_PI / (2*aa.dot(aa));
+  }
+
+  Eigen::Matrix3d R = gtsam::Rot3::Rodrigues(aa).matrix();
+
   Eigen::Matrix<double, 4, 9> H;
   orient::quaternionFromRotationMatrix(R, H);
   auto num = gtsam::numericalDerivative11(orient::quaternionFromRotationMatrix, R);
   CHECK( H.isApprox(num, 1e-10) );
+  std::cout << num << "\n\n";
+  std::cout << H << "\n\n";
+  std::cout << num - H << "\n\n";
 }

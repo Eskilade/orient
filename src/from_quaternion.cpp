@@ -2,81 +2,73 @@
 
 #include <orient/detail/trigonometric_derivatives.hpp>
 #include <orient/detail/skew_symmetric.hpp>
-#include <orient/detail/so3_generator.hpp>
-
-#include <orient/axis.hpp>
-
-template<int I>
-Eigen::Matrix3d rotationMatrixFromQuaternionDerivative(Eigen::Vector4d const& q)
-{
-  double n = q.dot(q);
-  double s = 1.0 / n;
-  Eigen::Matrix3d X = orient::detail::skewSymmetric(q.segment<3>(1));
-  auto sHqi = - 2 * q[I] * s * s;
-  return 
-    2 * sHqi * X * X +
-    2 * s * orient::detail::generator<orient::Axis(I-1)> * X +
-    2 * s * X * orient::detail::generator<orient::Axis(I-1)> +
-    2* sHqi * q[0] * X + 
-    2* s *q[0] * orient::detail::generator<orient::Axis(I-1)>;
-}
-
-template<>
-Eigen::Matrix3d rotationMatrixFromQuaternionDerivative<0>(Eigen::Vector4d const& q)
-{
-  double n = q.dot(q);
-  double s = 1.0 / n;
-  Eigen::Matrix3d X = orient::detail::skewSymmetric(q.segment<3>(1));
-  auto sHq0 = -2 * q[0]*s*s;
-  return 2*sHq0 * X * X + 
-           2*sHq0*q[0]*X + 
-           2*s*X;
-}
+#include <orient/detail/kronecker_product.hpp>
 
 namespace orient {
 
 Eigen::Matrix3d rotationMatrixFromQuaternion(Eigen::Vector4d const& q)
 {
-  double s = 1 / q.dot(q);
-  Eigen::Matrix3d X = detail::skewSymmetric(q.segment<3>(1));
-  return Eigen::Matrix3d::Identity() + 2 * s * X * X + 2*s*q[0]*X;
+  const Eigen::Matrix3d skew = detail::skewSymmetric(q.segment<3>(1));
+  return Eigen::Matrix3d::Identity() + 2*q[0]*skew + 2 * skew * skew;
 } 
  
 Eigen::Matrix3d rotationMatrixFromQuaternion(Eigen::Vector4d const& q, Eigen::Ref<Eigen::Matrix<double, 9, 4>> H)
 {
-  Eigen::Map<Eigen::Matrix3d>(H.block<9,1>(0,0).data(), 3,3) = rotationMatrixFromQuaternionDerivative<0>(q);
-  Eigen::Map<Eigen::Matrix3d>(H.block<9,1>(0,1).data(), 3,3) = rotationMatrixFromQuaternionDerivative<1>(q);
-  Eigen::Map<Eigen::Matrix3d>(H.block<9,1>(0,2).data(), 3,3) = rotationMatrixFromQuaternionDerivative<2>(q);
-  Eigen::Map<Eigen::Matrix3d>(H.block<9,1>(0,3).data(), 3,3) = rotationMatrixFromQuaternionDerivative<3>(q);
-  return rotationMatrixFromQuaternion(q);
+  const auto w = q[0];
+  const Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
+
+  const auto [skew, skewHv] = detail::skewSymmetricWPD(q.segment<3>(1));
+  const Eigen::Matrix<double, 9, 1> RHw= 2*Eigen::Map<const Eigen::Matrix<double, 9, 1>>{skew.data(), skew.size()};
+
+  const Eigen::Matrix3d skew2 = skew*skew;
+  const Eigen::Matrix<double, 9, 3>
+    skew2Hv = (detail::kroneckerProduct(I, skew) + Eigen::kroneckerProduct(skew.transpose(), I)) * skewHv;
+
+  const Eigen::Matrix<double, 9, 3> RHv= 2.*w*skewHv + 2.*skew2Hv;
+
+  H.block<9,1>(0,0) = RHw;
+  H.block<9,3>(0,1) = RHv;
+  return Eigen::Matrix3d::Identity() + 2.*w*skew + 2.*skew2;
 } 
 
 Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q)
 {
-  double w = q[0];
-  Eigen::Vector3d v = q.segment<3>(1);
-  double nv = std::sqrt(v.dot(v));
-  const auto a =  detail::atan2(nv, w);
-  return 2 * v * a / nv;
+  const auto w = q[0];
+  const Eigen::Vector3d v = q.segment<3>(1);
+  if(1. - w < 1e-10){
+    return v * 6. /(w + 2.);
+  }
+  const auto y = std::sqrt(v.dot(v));
+  return 2 * v * std::atan2(y, w) / y;
 }
 
 Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q, Eigen::Ref<Eigen::Matrix<double, 3, 4>> H )
 {
-  double n = q.dot(q);
-  if( n < std::numeric_limits<double>::epsilon()){
-    H = Eigen::Matrix<double, 3, 4>::Constant(std::nan(""));
+  const auto w = q[0];
+  const Eigen::Vector3d v = q.segment<3>(1);
+  if(1. - w < 1e-10){
+    const auto k = 6. /(w + 2.);
+    const auto kHw = -6./((w+2.)*(w+2.));
+    const Eigen::Vector3d aaHw = kHw*v;
+    const Eigen::Matrix3d aaHv = k*Eigen::Matrix3d::Identity();
+    H.block<3,1>(0,0) = aaHw;
+    H.block<3,3>(0,1) = aaHv;
+    return k*v;
   }
-  double w = q[0];
-  Eigen::Vector3d v = q.segment<3>(1);
-  double nv = std::sqrt(v.dot(v));
-  double aHnv, aHw;
-  const auto a =  detail::atan2(nv, w, aHnv, aHw);
-  const auto aa = 2 * v * a / nv;
-  const Eigen::Matrix<double, 1, 3> nvHv = v.transpose() / nv;
-  H.block<3,1>(0,0) = 2 * v * aHw / nv;
-  H.block<3,3>(0,1) = 2 * v * aHnv * nvHv / nv
-    - 2 * a * detail::skewSymmetric(v) * detail::skewSymmetric(v) / (nv*nv*nv);
-  return aa;
+
+  const auto y2 = v.dot(v);
+  const auto y = std::sqrt(y2);
+
+  const auto arg = std::atan2(y, w);
+  const auto k = 2. * arg / y;
+  const auto kHw = -2.;
+  const auto kHy = 2.*(w*y - arg)/y2;
+
+  const Eigen::Matrix<double, 1, 3> yHv = v.transpose() / y;
+
+  H.block<3,1>(0,0) = kHw * v;
+  H.block<3,3>(0,1) = v * kHy * yHv + k*Eigen::Matrix3d::Identity();
+  return k*v;
 }
 
 }
