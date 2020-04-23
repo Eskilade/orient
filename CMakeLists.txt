@@ -25,5 +25,5 @@ add_test(test_test
   test/from_angle_axis_test.cpp src/from_angle_axis.cpp
   test/from_rotation_matrix_test.cpp src/from_rotation_matrix.cpp
   test/trigonometry_test.cpp
-  test/from_euler_test.cpp
-  test/normalize_test.cpp)
+  test/from_euler_test.cpp)
+

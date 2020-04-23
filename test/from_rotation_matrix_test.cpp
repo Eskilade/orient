@@ -1,7 +1,6 @@
 #include <catch/catch2.hpp>
 
 #include <orient/from_rotation_matrix.hpp>
-#include <orient/normalize.hpp>
 
 #include <Eigen/Geometry>
 #include <gtsam/base/numericalDerivative.h>
