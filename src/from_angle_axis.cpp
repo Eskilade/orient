@@ -1,7 +1,6 @@
 #include <orient/from_angle_axis.hpp>
 
 #include <orient/detail/skew_symmetric.hpp>
-#include <orient/detail/trigonometric_derivatives.hpp>
 #include <orient/detail/kronecker_product.hpp>
 
 namespace orient {

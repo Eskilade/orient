@@ -27,37 +27,6 @@ Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eig
 #include <orient/detail/trigonometric_derivatives.hpp>
 #include <orient/detail/skew_symmetric.hpp>
 
-// @brief A helper class for accessing rotation matrix elements
-// that also takes into account the sign
-template<typename Derived>
-class Wrap
-{
-public:
-  Wrap(Eigen::MatrixBase<Derived> const& m):
-      ref{m},
-      sign_mat{Eigen::Matrix3d::Identity()+
-        orient::detail::skewSymmetric(Eigen::Vector3d::Ones())}
-    {};
-
-  auto operator()(orient::detail::Index const& idx) const
-  {
-    return sign(idx) * uncorrected(idx);
-  }
-
-  auto uncorrected(orient::detail::Index const& idx) const
-  {
-    return ref(idx.r, idx.c);
-  }
-
-  auto sign(orient::detail::Index const& idx) const
-  {
-    return sign_mat(idx.r, idx.c);
-  }
-
-private:
-  Eigen::Ref<const Eigen::Matrix3d> ref;
-  Eigen::Matrix3d sign_mat;
-};
 
 namespace orient {
 
@@ -65,27 +34,27 @@ template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isTaitBryan<A1,A2,A
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R)
 {
   using T = detail::TaitBryanTraits<A1,A2,A3>;
-  const auto W = Wrap{R};
-  const auto lone_v = W.uncorrected(T::a2s);
+  const auto sign = (Eigen::Matrix3d::Identity()+orient::detail::skewSymmetric(Eigen::Vector3d::Ones())).eval();
+  const auto lone_v = R(T::a2s);
   const auto thres = 1.0 - std::numeric_limits<float>::epsilon();
   double a1,a2,a3;
   if( lone_v < thres ){
     if( lone_v > - thres ){
-      a2 = detail::asin( W(T::a2s));
-      a1 = detail::atan2(W(T::a1s), W(T::a1c));
-      a3 = detail::atan2(W(T::a3s), W(T::a3c));
+      a2 = std::asin( sign(T::a2s) * R(T::a2s));
+      a1 = std::atan2(sign(T::a1s) * R(T::a1s), sign(T::a1c) * R(T::a1c));
+      a3 = std::atan2(sign(T::a3s) * R(T::a3s), sign(T::a3c) * R(T::a3c));
     } 
     else { // Gimbal lock. lone value ~= -1
       using TGL = typename T::GimbalLock;
-      a2 =  - W.sign(T::a2s) * M_PI / 2.0;
-      a1 =  - detail::atan2( W(TGL::a1s), W(TGL::a1c) );
+      a2 =  - sign(T::a2s) * M_PI / 2.0;
+      a1 =  - std::atan2( sign(TGL::a1s) * R(TGL::a1s), sign(TGL::a1c) * R(TGL::a1c) );
       a3 = 0.;
     }
   }
   else { // Gimbal lock. lone value ~= +1
     using TGL = typename T::GimbalLock;
-    a2 =  W.sign(T::a2s) * M_PI / 2.0;
-    a1 =  detail::atan2( W(TGL::a1s), W(TGL::a1c) );
+    a2 =  sign(T::a2s) * M_PI / 2.0;
+    a1 =  std::atan2( sign(TGL::a1s) * R(TGL::a1s), sign(TGL::a1c) * R(TGL::a1c) );
     a3 = 0.;
   }
   return (Eigen::Vector3d() << a1,a2,a3).finished();
@@ -96,40 +65,37 @@ Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eig
 {
   using T = detail::TaitBryanTraits<A1,A2,A3>;
   H = Eigen::Matrix<double, 3, 9>::Zero();
-  const auto W = Wrap{R};
-  const auto lone_v = W.uncorrected(T::a2s);
+  const auto sign = (Eigen::Matrix3d::Identity()+orient::detail::skewSymmetric(Eigen::Vector3d::Ones())).eval();
+  const auto lone_v = R(T::a2s);
   const auto thres = 1.0 - std::numeric_limits<float>::epsilon();
   double a1,a2,a3;
   if( lone_v < thres ){
     if( lone_v > - thres ){
-      a2 = detail::asin( W(T::a2s), 
-          H(1, T::a2s.c*3 + T::a2s.r));
-      H(1, T::a2s.c*3 + T::a2s.r) *= W.sign(T::a2s);
+      std::tie(a2, H(1, T::a2s)) = detail::asinWD( sign(T::a2s) * R(T::a2s) );
+      H(1, T::a2s) *= sign(T::a2s);
 
-      a1 = detail::atan2(W(T::a1s), W(T::a1c),
-          H(0, T::a1s.c*3 + T::a1s.r),
-          H(0, T::a1c.c*3 + T::a1c.r));
-      H(0, T::a1s.c*3 + T::a1s.r) *= W.sign(T::a1s);
-      H(0, T::a1c.c*3 + T::a1c.r) *= W.sign(T::a1c);
+      std::tie(a1, H(0, T::a1s), H(0, T::a1c)) = 
+        detail::atan2WD(sign(T::a1s) * R(T::a1s), sign(T::a1c) * R(T::a1c));
+      H(0, T::a1s) *= sign(T::a1s);
+      H(0, T::a1c) *= sign(T::a1c);
 
-      a3 = detail::atan2(W(T::a3s), W(T::a3c),
-      H(2, T::a3s.c*3 + T::a3s.r),
-      H(2, T::a3c.c*3 + T::a3c.r));
-      H(2, T::a3s.c*3 + T::a3s.r) *= W.sign(T::a3s);
-      H(2, T::a3c.c*3 + T::a3c.r) *= W.sign(T::a3c);
+      std::tie(a3, H(2, T::a3s), H(2, T::a3c)) =
+        detail::atan2WD(sign(T::a3s)*R(T::a3s), sign(T::a3c)*R(T::a3c));
+      H(2, T::a3s) *= sign(T::a3s);
+      H(2, T::a3c) *= sign(T::a3c);
     } 
     else { // Gimbal lock. lone value ~= -1
       using TGL = typename T::GimbalLock;
-      a2 =  - W.sign(T::a2s) * M_PI / 2.0;
-      a1 =  - detail::atan2( W(TGL::a1s), W(TGL::a1c) );
+      a2 =  - sign(T::a2s) * M_PI / 2.0;
+      a1 =  - std::atan2( sign(TGL::a1s) * R(TGL::a1s), sign(TGL::a1c) * R(TGL::a1c) );
       a3 = 0.;
       H = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
     }
   }
   else { // Gimbal lock. lone value ~= +1
     using TGL = typename T::GimbalLock;
-    a2 =  W.sign(T::a2s) * M_PI / 2.0;
-    a1 =  detail::atan2( W(TGL::a1s), W(TGL::a1c) );
+    a2 =  sign(T::a2s) * M_PI / 2.0;
+    a1 =  std::atan2( sign(TGL::a1s) * R(TGL::a1s), sign(TGL::a1c) * R(TGL::a1c) );
     a3 = 0.;
     H = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
   }
@@ -140,27 +106,27 @@ template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isProperEuler<A1,A2
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R)
 {
   using T = detail::ProperEulerTraits<A1,A2>; 
-  const auto W = Wrap{R};
-  const auto lone_v = W.uncorrected(T::a2c);
+  const auto sign = (Eigen::Matrix3d::Identity()+orient::detail::skewSymmetric(Eigen::Vector3d::Ones())).eval();
+  const auto lone_v = R(T::a2c);
   const auto thres = 1.0 - std::numeric_limits<float>::epsilon();
   double a1,a2,a3;
   if( lone_v < thres ){
     if( lone_v > - thres ){
-      a2 = detail::acos( W(T::a2c));
-      a1 = detail::atan2(W.uncorrected(T::a1s), W(T::a1c));
-      a3 = detail::atan2(W.uncorrected(T::a3s), W(T::a3c));
+      a2 = std::acos( sign(T::a2c) * R(T::a2c));
+      a1 = std::atan2(R(T::a1s), sign(T::a1c) * R(T::a1c));
+      a3 = std::atan2(R(T::a3s), sign(T::a3c) * R(T::a3c));
     } 
     else { // Gimbal lock. lone value ~= -1
       using TGL = typename T::GimbalLock;
       a2 =  M_PI;
-      a1 =  - detail::atan2( W(TGL::a1s), W(TGL::a1c) );
+      a1 =  - std::atan2( sign(TGL::a1s) * R(TGL::a1s), sign(TGL::a1c) * R(TGL::a1c) );
       a3 = 0.;
     }
   }
   else { // Gimbal lock. lone value ~= +1
     using TGL = typename T::GimbalLock;
-    a2 =  0.0;
-    a1 =  detail::atan2( W(TGL::a1s), W(TGL::a1c) );
+    a2 = 0.0;
+    a1 = std::atan2( sign(TGL::a1s) * R(TGL::a1s), sign(TGL::a1c) * R(TGL::a1c) );
     a3 = 0.;
   }
   return (Eigen::Vector3d() << a1,a2,a3).finished();
@@ -171,37 +137,36 @@ Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eig
 {
   using T = detail::ProperEulerTraits<A1,A2>; 
   H = Eigen::Matrix<double, 3, 9>::Zero();
-  const auto W = Wrap{R};
-  const auto lone_v = W.uncorrected(T::a2c);
+  const auto sign = (Eigen::Matrix3d::Identity()+orient::detail::skewSymmetric(Eigen::Vector3d::Ones())).eval();
+  const auto lone_v = R(T::a2c);
   const auto thres = 1.0 - std::numeric_limits<float>::epsilon();
   double a1,a2,a3;
   if( lone_v < thres ){
     if( lone_v > - thres ){
-      a2 = detail::acos( W(T::a2c), 
-          H(1, T::a2c.c*3 + T::a2c.r));
-      H(1, T::a2c.c*3 + T::a2c.r) *= W.sign(T::a2c);
+      std::tie(a2, H(1, T::a2c)) =
+        detail::acosWD( sign(T::a2c) * R(T::a2c) );
+      H(1, T::a2c) *= sign(T::a2c);
 
-      a1 = detail::atan2(W.uncorrected(T::a1s), W(T::a1c),
-          H(0, T::a1s.c*3 + T::a1s.r),
-          H(0, T::a1c.c*3 + T::a1c.r) );
-      H(0, T::a1c.c*3 + T::a1c.r) *= W.sign(T::a1c);
-      a3 = detail::atan2(W.uncorrected(T::a3s), W(T::a3c),
-          H(2, T::a3s.c*3 + T::a3s.r),
-          H(2, T::a3c.c*3 + T::a3c.r) );
-      H(2, T::a3c.c*3 + T::a3c.r) *= W.sign(T::a3c);
+      std::tie(a1, H(0, T::a1s), H(0, T::a1c)) =
+        detail::atan2WD(R(T::a1s), sign(T::a1c)*R(T::a1c));
+      H(0, T::a1c) *= sign(T::a1c);
+
+      std::tie(a3, H(2, T::a3s), H(2, T::a3c)) =
+        detail::atan2WD(R(T::a3s), sign(T::a3c) * R(T::a3c));
+      H(2, T::a3c) *= sign(T::a3c);
     } 
     else { // Gimbal lock. lone value ~= -1
       using TGL = typename T::GimbalLock;
-      a2 =  M_PI;
-      a1 =  - detail::atan2( W(TGL::a1s), W(TGL::a1c) );
+      a2 = M_PI;
+      a1 = - std::atan2( sign(TGL::a1s) * R(TGL::a1s), sign(TGL::a1c) * R(TGL::a1c) );
       a3 = 0.;
       H = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
     }
   }
   else { // Gimbal lock. lone value ~= +1
     using TGL = typename T::GimbalLock;
-    a2 =  0.0;
-    a1 =  detail::atan2( W(TGL::a1s), W(TGL::a1c) );
+    a2 = 0.0;
+    a1 = std::atan2( sign(TGL::a1s) * R(TGL::a1s), sign(TGL::a1c) * R(TGL::a1c) );
     a3 = 0.;
     H = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
   }

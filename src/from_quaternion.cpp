@@ -1,6 +1,5 @@
 #include <orient/from_quaternion.hpp>
 
-#include <orient/detail/trigonometric_derivatives.hpp>
 #include <orient/detail/skew_symmetric.hpp>
 #include <orient/detail/kronecker_product.hpp>
 

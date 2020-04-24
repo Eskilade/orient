@@ -1,7 +1,5 @@
 #pragma once
 
-#include <orient/detail/trigonometric_derivatives.hpp>
-
 #include <orient/axis.hpp>
 
 #include <Eigen/Dense>

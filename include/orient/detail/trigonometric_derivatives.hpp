@@ -2,30 +2,24 @@
 
 namespace orient::detail {
 
-using std::asin;
-inline double asin(double x, double& H)
+inline std::pair<double, double> asinWD(double x)
 {
-  H = ( std::abs(x) < 1.0 - std::numeric_limits<double>::epsilon() ) 
-    ? 1.0 / std::sqrt(1.0 - x*x) : std::nan("");
-  return std::asin(x);
+  return std::make_pair(std::asin(x), 1.0 / std::sqrt(1.0 - x*x));
 }
 
-using std::acos;
-inline double acos(double x, double& H)
+inline std::pair<double, double> acosWD(double x)
 {
-  H = ( std::abs(x) < 1.0 - std::numeric_limits<double>::epsilon() ) 
-   ? - 1.0 / std::sqrt(1.0 - x*x) : std::nan("");
-  return std::acos(x);
+  return std::make_pair(std::acos(x), -1.0 / std::sqrt(1.0 - x*x));
 }
 
-using std::atan2;
-inline double atan2(double y, double x, double& Hy, double& Hx)
+
+inline std::tuple<double, double, double>
+atan2WD(double y, double x)
 {
-  auto norm = x*x + y*y;
-  auto isValid = norm > std::numeric_limits<double>::epsilon();
-  Hy = isValid ? x / norm : std::nan("");
-  Hx = isValid ? - y / norm : std::nan("");
-  return std::atan2(y, x);
+  const auto norm = x*x + y*y;
+  const auto Hy = x / norm;
+  const auto Hx = - y / norm;
+  return std::make_tuple(std::atan2(y, x), Hy, Hx);
 }
 
 }

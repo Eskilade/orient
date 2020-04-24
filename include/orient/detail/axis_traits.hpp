@@ -1,24 +1,27 @@
 #pragma once
 
-#include <orient/detail/index.hpp>
 #include <orient/axis.hpp>
 
 namespace orient::detail {
 
+template<Axis A>
+constexpr auto asIndex = static_cast<std::underlying_type_t<Axis>>(A);
+
+
 template<Axis a1, Axis a2>
 constexpr Axis missing()
 {
-  return Axis{3 - static_cast<std::underlying_type_t<Axis>>(a1) -
-    static_cast<std::underlying_type_t<Axis>>(a2)};
+  return Axis{3 - asIndex<a1> -
+    asIndex<a2>};
 }
 
 template<Axis a1, Axis a2, Axis a3>
 constexpr bool isTaitBryan()
 {
   return 
-    (static_cast<std::underlying_type_t<Axis>>(a1) +
-    static_cast<std::underlying_type_t<Axis>>(a2) +
-    static_cast<std::underlying_type_t<Axis>>(a3)) == 3;
+    (asIndex<a1> +
+    asIndex<a2> +
+    asIndex<a3>) == 3;
 }
 
 template<Axis a1, Axis a2, Axis a3>
@@ -36,69 +39,32 @@ constexpr bool isMalformed()
 template<Axis a1, Axis a2, Axis a3>
 struct TaitBryanTraits
 {
-  static constexpr auto a2s = Index{
-    static_cast<std::underlying_type_t<Axis>>(a1),
-    static_cast<std::underlying_type_t<Axis>>(a3)};
+  static constexpr auto a2s = asIndex<a1> + asIndex<a3>*3;
+  static constexpr auto a1s = asIndex<a2> + asIndex<a3>*3;
+  static constexpr auto a1c = asIndex<a3> + asIndex<a3>*3;
+  static constexpr auto a3s = asIndex<a1> + asIndex<a2>*3;
+  static constexpr auto a3c = asIndex<a1> + asIndex<a1>*3;
 
-  static constexpr auto a1s = Index{
-    static_cast<std::underlying_type_t<Axis>>(a2),
-    static_cast<std::underlying_type_t<Axis>>(a3)};
-
-  static constexpr auto a1c = Index{
-    static_cast<std::underlying_type_t<Axis>>(a3),
-    static_cast<std::underlying_type_t<Axis>>(a3)};
-
-  static constexpr auto a3s = Index{
-    static_cast<std::underlying_type_t<Axis>>(a1),
-    static_cast<std::underlying_type_t<Axis>>(a2)};
-
-  static constexpr auto a3c = Index{
-    static_cast<std::underlying_type_t<Axis>>(a1),
-    static_cast<std::underlying_type_t<Axis>>(a1)};
-
-  struct GimbalLock {
-    static constexpr auto a1s = Index{
-      static_cast<std::underlying_type_t<Axis>>(a2),
-      static_cast<std::underlying_type_t<Axis>>(a1)};
-
-    static constexpr auto a1c = Index{
-      static_cast<std::underlying_type_t<Axis>>(a2),
-      static_cast<std::underlying_type_t<Axis>>(a2)};
+  struct GimbalLock { 
+    static constexpr auto a1s = asIndex<a2> + asIndex<a1>*3;
+    static constexpr auto a1c = asIndex<a2> + asIndex<a2>*3;
   };
 };
 
 template<Axis a1, Axis a2>
 struct ProperEulerTraits
 {
-  static constexpr Axis ma = missing<a1,a2>();
-  static constexpr auto a2c = Index{
-    static_cast<std::underlying_type_t<Axis>>(a1),
-    static_cast<std::underlying_type_t<Axis>>(a1)};
-
-  static constexpr auto a1s = Index{
-    static_cast<std::underlying_type_t<Axis>>(a2),
-    static_cast<std::underlying_type_t<Axis>>(a1)};
-
-  static constexpr auto a1c = Index{
-    static_cast<std::underlying_type_t<Axis>>(ma),
-    static_cast<std::underlying_type_t<Axis>>(a1)};
-
-  static constexpr auto a3s = Index{
-    static_cast<std::underlying_type_t<Axis>>(a1),
-    static_cast<std::underlying_type_t<Axis>>(a2)};
-
-  static constexpr auto a3c = Index{
-    static_cast<std::underlying_type_t<Axis>>(a1),
-    static_cast<std::underlying_type_t<Axis>>(ma)};
+  static constexpr Axis ma = missing<a1,a2>(); 
+  
+  static constexpr auto a2c = asIndex<a1> + asIndex<a1>*3;
+  static constexpr auto a1s = asIndex<a2> + asIndex<a1>*3;
+  static constexpr auto a1c = asIndex<ma> + asIndex<a1>*3;
+  static constexpr auto a3s = asIndex<a1> + asIndex<a2>*3;
+  static constexpr auto a3c = asIndex<a1> + asIndex<ma>*3;
 
   struct GimbalLock {
-    static constexpr auto a1s = Index{
-      static_cast<std::underlying_type_t<Axis>>(a2),
-      static_cast<std::underlying_type_t<Axis>>(ma)};
-
-    static constexpr auto a1c = Index{
-      static_cast<std::underlying_type_t<Axis>>(a2),
-      static_cast<std::underlying_type_t<Axis>>(a2)};
+    static constexpr auto a1s =  asIndex<a2> + asIndex<ma>*3;
+    static constexpr auto a1c =  asIndex<a2> + asIndex<a2>*3;
   };
 };
 

@@ -72,7 +72,7 @@ Eigen::Vector3d angleAxisFromRotationMatrix(Eigen::Matrix3d const& R)
     return M_PI * uut.block<3,1>(0, max_i) / ui;
   } else {
     const auto arg = (trace - 1)/2; 
-    const auto angle = arg + 1 > std::numeric_limits<double>::epsilon() ? std::acos(arg) : M_PI;
+    const auto angle = std::acos(arg);
     return detail::unskewSymmetric(R - R.transpose()) * angle / (2*std::sin(angle));
   }
 }
@@ -89,8 +89,7 @@ Eigen::Vector3d angleAxisFromRotationMatrix(
   }
   const auto x = 0.5*(tr - 1.0);
 
-  const auto angle = std::acos(x);
-  const auto angleHtr = -1./(2.*std::sqrt(1.-x*x));
+  const auto [angle, angleHx] = detail::acosWD(x);
 
   const auto sin = std::sin(angle);
 
@@ -105,7 +104,7 @@ Eigen::Vector3d angleAxisFromRotationMatrix(
   const Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
   Eigen::Map<const Eigen::Matrix<double, 9, 1>> vecI{I.data(), I.size()};
 
-  H = detail::kroneckerProduct(ev.transpose(), I) * vecI *k3Hangle * angleHtr * trHR 
+  H = detail::kroneckerProduct(ev.transpose(), I) * vecI *k3Hangle * angleHx * trHR / 2.
     + k3 * evHeR * eRHR;
    return k3 * ev;
 }
