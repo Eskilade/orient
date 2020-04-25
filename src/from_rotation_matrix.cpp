@@ -16,12 +16,6 @@ typename std::enable_if<not std::numeric_limits<T>::is_integer, bool>::type
         || std::fabs(x-y) < std::numeric_limits<T>::min();
 }
 
-double trace(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 1, 9>> H)
-{
-  H << 1,0,0,0,1,0,0,0,1;
-  return R.trace();
-}
-
 Eigen::Matrix<double, 9, 9> transposePD()
 {
   Eigen::Matrix<double, 9,9> H = Eigen::Matrix<double, 9,9>::Identity();
@@ -36,19 +30,6 @@ std::tuple<double, Eigen::Matrix<double, 1, 9>> traceWPD(Eigen::Matrix3d const& 
   Eigen::Matrix<double, 1, 9> H;
   H << 1,0,0,0,1,0,0,0,1;
   return std::make_tuple(R.trace(), H);
-}
-
-Eigen::Vector3d errorVector(Eigen::Matrix3d const& R)
-{
-  return orient::detail::unskewSymmetric(R - R.transpose());
-}
-
-std::tuple<Eigen::Vector3d, Eigen::Matrix<double, 3, 9>>
-errorVectorWPD(Eigen::Matrix3d const& R)
-{
-  Eigen::Matrix<double, 3, 9> H;
-  H << orient::detail::generator<orient::Axis::x>, orient::detail::generator<orient::Axis::y>, orient::detail::generator<orient::Axis::z>;
-  return std::make_tuple(errorVector(R), H);
 }
 
 namespace orient {
