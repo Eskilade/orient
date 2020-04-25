@@ -13,13 +13,13 @@ template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isTaitBryan_v<A1,A2
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R);
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isTaitBryan_v<A1,A2,A3>, int> = 0>
-Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 3, 9>> H);
+std::pair<Eigen::Vector3d, Eigen::Matrix<double, 3, 9>> eulerFromRotationMatrixWD(Eigen::Matrix3d const& R);
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isProperEuler_v<A1,A2,A3>, int> = 0>
 Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R);
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isProperEuler_v<A1,A2,A3>, int> = 0>
-Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 3, 9>> H);
+std::pair<Eigen::Vector3d, Eigen::Matrix<double, 3, 9>> eulerFromRotationMatrixWD(Eigen::Matrix3d const& R);
 
 }
  
@@ -61,10 +61,10 @@ Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R)
 }
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isTaitBryan_v<A1,A2,A3>, int> >
-Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 3, 9>> H)
+std::pair<Eigen::Vector3d, Eigen::Matrix<double, 3, 9>> eulerFromRotationMatrixWD(Eigen::Matrix3d const& R)
 {
   using T = detail::TaitBryanTraits<A1,A2,A3>;
-  H = Eigen::Matrix<double, 3, 9>::Zero();
+  Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
   const auto& sign = T::sign_matrix;
   const auto lone_v = R(T::a2s);
   const auto thres = 1.0 - std::numeric_limits<float>::epsilon();
@@ -99,7 +99,7 @@ Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eig
     a3 = 0.;
     H = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
   }
-  return (Eigen::Vector3d() << a1,a2,a3).finished();
+  return std::make_pair((Eigen::Vector3d() << a1,a2,a3).finished(), H);
 }
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isProperEuler_v<A1,A2,A3>, int> >
@@ -133,10 +133,10 @@ Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R)
 }
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isProperEuler_v<A1,A2,A3>, int> >
-Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eigen::Matrix<double, 3, 9>> H)
+std::pair<Eigen::Vector3d, Eigen::Matrix<double, 3, 9>> eulerFromRotationMatrixWD(Eigen::Matrix3d const& R)
 {
   using T = detail::ProperEulerTraits<A1,A2>; 
-  H = Eigen::Matrix<double, 3, 9>::Zero();
+  Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
   const auto& sign = T::sign_matrix;
   const auto lone_v = R(T::a2c);
   const auto thres = 1.0 - std::numeric_limits<float>::epsilon();
@@ -170,7 +170,7 @@ Eigen::Vector3d eulerFromRotationMatrix(Eigen::Matrix3d const& R, Eigen::Ref<Eig
     a3 = 0.;
     H = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
   }
-  return (Eigen::Vector3d() << a1,a2,a3).finished();
+  return std::make_pair((Eigen::Vector3d() << a1,a2,a3).finished(), H);
 }
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isMalformed_v<A1,A2,A3>, int> >
@@ -178,6 +178,13 @@ void eulerFromRotationMatrix(Eigen::Matrix3d const&)
 {
   constexpr bool alwaysFalse = ( A1 != A1);
   static_assert( alwaysFalse, "Passed a malformed rotation sequence. Please choose either a propor euler sequence or a Tait-Bryan sequence");
+}
+
+template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isMalformed_v<A1,A2,A3>, int> >
+void eulerFromRotationMatrixWD(Eigen::Matrix3d const& arg)
+{
+  // Reuse same compilation error message
+  eulerFromRotationMatrix<A1, A2, A3>(arg);
 }
 
 }
