@@ -77,15 +77,12 @@ Eigen::Vector3d angleAxisFromRotationMatrix(Eigen::Matrix3d const& R)
   }
 }
 
-Eigen::Vector3d angleAxisFromRotationMatrix(
-    Eigen::Matrix3d const& R,
-    Eigen::Ref<Eigen::Matrix<double, 3, 9>> H)
+std::pair<Eigen::Vector3d, Eigen::Matrix<double, 3, 9>> angleAxisFromRotationMatrixWD(Eigen::Matrix3d const& R)
 {
   const auto [tr, trHR] = traceWPD(R);
   if( almost_equal(tr, 3.0, 10) ){
     const auto [ev, evHR] = detail::unskewSymmetricWPD(R);
-    H = evHR;
-    return ev;
+    return std::make_pair(ev, evHR);
   }
   const auto x = 0.5*(tr - 1.0);
 
@@ -104,16 +101,13 @@ Eigen::Vector3d angleAxisFromRotationMatrix(
   const Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
   Eigen::Map<const Eigen::Matrix<double, 9, 1>> vecI{I.data(), I.size()};
 
-  H = detail::kroneckerProduct(ev.transpose(), I) * vecI *k3Hangle * angleHx * trHR / 2.
+  const Eigen::Matrix<double, 3, 9> H = detail::kroneckerProduct(ev.transpose(), I) * vecI *k3Hangle * angleHx * trHR / 2.
     + k3 * evHeR * eRHR;
-   return k3 * ev;
+   return std::make_pair(k3 * ev, H);
 }
 
 Eigen::Vector4d quaternionFromRotationMatrix(Eigen::Matrix3d const& R)
 {
-  // tr(R) = 3*w^2 - x^2 - y^2 - z^2
-  //       = 4*w^2 - w^2 - x^2 - y^2 - z^2
-  //       = 4*w^2 - 1 
   const auto tr = R.trace();
   if( almost_equal(tr, -1.0, 10) ){
     // w is close to 0
@@ -127,9 +121,7 @@ Eigen::Vector4d quaternionFromRotationMatrix(Eigen::Matrix3d const& R)
   return (Eigen::Vector4d() << w, v).finished();
 }
 
-Eigen::Vector4d quaternionFromRotationMatrix(
-    Eigen::Matrix3d const& R,
-    Eigen::Ref<Eigen::Matrix<double, 4, 9>> H)
+std::pair<Eigen::Vector4d, Eigen::Matrix<double, 4, 9>> quaternionFromRotationMatrixWD(Eigen::Matrix3d const& R)
 {
   const auto [tr, trHR] = traceWPD(R);
 
@@ -151,10 +143,10 @@ Eigen::Vector4d quaternionFromRotationMatrix(
   Eigen::Matrix<double, 3 , 9> vHR = detail::kroneckerProduct(ev.transpose(), I) * vecI *k4Hw * wHR 
     + k4 * evHeR * eRHR;
 
+  Eigen::Matrix<double, 4, 9> H;
   H.block<1,9>(0,0) = wHR;
   H.block<3,9>(1,0) = vHR;
-
-  return (Eigen::Vector4d() << w, v).finished();
+  return std::make_pair((Eigen::Vector4d() << w, v).finished(), H);
 }
 
 }

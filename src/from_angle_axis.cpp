@@ -16,13 +16,12 @@ Eigen::Matrix3d rotationMatrixFromAngleAxis(Eigen::Vector3d const& aa)
   return Eigen::Matrix3d::Identity() + skew * std::sin(angle) / angle + skew * skew * (1 - std::cos(angle)) / angle2; 
 }
 
-Eigen::Matrix3d rotationMatrixFromAngleAxis(Eigen::Vector3d const& aa, Eigen::Ref<Eigen::Matrix<double, 9, 3>> H)
+std::pair<Eigen::Matrix3d, Eigen::Matrix<double, 9, 3>> rotationMatrixFromAngleAxisWD(Eigen::Vector3d const& aa)
 {
   const auto [skew, skewHaa] = detail::skewSymmetricWPD(aa);
   const auto angle2 = aa.dot(aa);
   if (angle2 < std::numeric_limits<double>::epsilon()) {
-    H = skewHaa;
-    return Eigen::Matrix3d::Identity();
+    return std::make_pair(Eigen::Matrix3d::Identity(), skewHaa);
   }
   const auto angle = std::sqrt(angle2);
   const auto s = std::sin(angle);
@@ -45,8 +44,7 @@ Eigen::Matrix3d rotationMatrixFromAngleAxis(Eigen::Vector3d const& aa, Eigen::Re
   const Eigen::Matrix3d term2 = k2 * skew2;
   const Eigen::Matrix<double, 9, 3> term2Haa = k2 * skew2Haa + detail::kroneckerProduct(skew2, I)*vecI*k2Haa;
 
-  H = term1Haa + term2Haa;
-  return I + term1 + term2;
+  return std::make_pair(I + term1 + term2, term1Haa + term2Haa);
 }
 
 Eigen::Vector4d quaternionFromAngleAxis(Eigen::Vector3d const& aa)
@@ -64,7 +62,7 @@ Eigen::Vector4d quaternionFromAngleAxis(Eigen::Vector3d const& aa)
   return (Eigen::Vector4d() << w, v).finished();
 }
 
-Eigen::Vector4d quaternionFromAngleAxis(Eigen::Vector3d const& aa, Eigen::Ref<Eigen::Matrix<double, 4, 3>> H)
+std::pair<Eigen::Vector4d, Eigen::Matrix<double, 4, 3>> quaternionFromAngleAxisWD(Eigen::Vector3d const& aa)
 {
   const auto angle2 = aa.dot(aa);
   if( angle2 < 1e-10){
@@ -76,9 +74,11 @@ Eigen::Vector4d quaternionFromAngleAxis(Eigen::Vector3d const& aa, Eigen::Ref<Ei
 
     const auto v = k*aa;
     const auto vHaa = aa * kHaa + k * Eigen::Matrix3d::Identity();
+
+    Eigen::Matrix<double, 4, 3> H;
     H.block<1,3>(0,0) = wHaa;
     H.block<3,3>(1,0) = vHaa;
-    return (Eigen::Vector4d() << w, v).finished();
+    return std::make_pair((Eigen::Vector4d() << w, v).finished(), H);
   }
   const auto angle = std::sqrt(angle2);
   const auto ha = angle/2.0;
@@ -94,10 +94,11 @@ Eigen::Vector4d quaternionFromAngleAxis(Eigen::Vector3d const& aa, Eigen::Ref<Ei
   const Eigen::Vector3d v = k * aa;
   const Eigen::Matrix3d vHaa = aa * kHaa + k * Eigen::Matrix3d::Identity();
 
+  Eigen::Matrix<double, 4, 3> H;
   H.block<1,3>(0,0) = wHaa;
   H.block<3,3>(1,0) = vHaa;
 
-  return (Eigen::Vector4d() << w, v).finished();
+  return std::make_pair((Eigen::Vector4d() << w, v).finished(), H);
 }
 
 }

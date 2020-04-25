@@ -11,7 +11,7 @@ Eigen::Matrix3d rotationMatrixFromQuaternion(Eigen::Vector4d const& q)
   return Eigen::Matrix3d::Identity() + 2*q[0]*skew + 2 * skew * skew;
 } 
  
-Eigen::Matrix3d rotationMatrixFromQuaternion(Eigen::Vector4d const& q, Eigen::Ref<Eigen::Matrix<double, 9, 4>> H)
+std::pair<Eigen::Matrix3d, Eigen::Matrix<double, 9, 4>> rotationMatrixFromQuaternionWD(Eigen::Vector4d const& q)
 {
   const auto w = q[0];
   const Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
@@ -24,10 +24,10 @@ Eigen::Matrix3d rotationMatrixFromQuaternion(Eigen::Vector4d const& q, Eigen::Re
     skew2Hv = (detail::kroneckerProduct(I, skew) + Eigen::kroneckerProduct(skew.transpose(), I)) * skewHv;
 
   const Eigen::Matrix<double, 9, 3> RHv= 2.*w*skewHv + 2.*skew2Hv;
-
+  Eigen::Matrix<double, 9, 4> H;
   H.block<9,1>(0,0) = RHw;
   H.block<9,3>(0,1) = RHv;
-  return Eigen::Matrix3d::Identity() + 2.*w*skew + 2.*skew2;
+  return std::make_pair(Eigen::Matrix3d::Identity() + 2.*w*skew + 2.*skew2, H);
 } 
 
 Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q)
@@ -41,7 +41,7 @@ Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q)
   return 2 * v * std::atan2(y, w) / y;
 }
 
-Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q, Eigen::Ref<Eigen::Matrix<double, 3, 4>> H )
+std::pair<Eigen::Vector3d, Eigen::Matrix<double, 3, 4>> angleAxisFromQuaternionWD(Eigen::Vector4d const& q)
 {
   const auto w = q[0];
   const Eigen::Vector3d v = q.segment<3>(1);
@@ -50,9 +50,11 @@ Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q, Eigen::Ref<Eig
     const auto kHw = -6./((w+2.)*(w+2.));
     const Eigen::Vector3d aaHw = kHw*v;
     const Eigen::Matrix3d aaHv = k*Eigen::Matrix3d::Identity();
+
+    Eigen::Matrix<double, 3, 4> H;
     H.block<3,1>(0,0) = aaHw;
     H.block<3,3>(0,1) = aaHv;
-    return k*v;
+    return std::make_pair(k*v, H);
   }
 
   const auto y2 = v.dot(v);
@@ -65,9 +67,11 @@ Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q, Eigen::Ref<Eig
 
   const Eigen::Matrix<double, 1, 3> yHv = v.transpose() / y;
 
+  Eigen::Matrix<double, 3, 4> H;
   H.block<3,1>(0,0) = kHw * v;
   H.block<3,3>(0,1) = v * kHy * yHv + k*Eigen::Matrix3d::Identity();
-  return k*v;
+
+  return std::make_pair(k*v, H);
 }
 
 }

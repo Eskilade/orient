@@ -49,9 +49,9 @@ TEST_CASE("rotationMatrixFromQuaternion_derivative")
   q << eq.w(), eq.x(), eq.y(), eq.z();
 
   auto num = gtsam::numericalDerivative11(orient::rotationMatrixFromQuaternion, q);
-  Eigen::Matrix<double, 9, 4> calc;
-  orient::rotationMatrixFromQuaternion(q, calc);
-  CHECK( calc.isApprox( num, 1e-9) );
+  const auto [v, J] = orient::rotationMatrixFromQuaternionWD(q);
+  CHECK( v.isApprox(orient::rotationMatrixFromQuaternion(q)) );
+  CHECK( J.isApprox( num, 1e-9) );
 }
 
 TEST_CASE("angleAxisFromQuaternion")
@@ -102,7 +102,7 @@ TEST_CASE("angleAxisFromQuaternion_derivative")
   q << eq.w(), eq.x(), eq.y(), eq.z();
 
   auto num = gtsam::numericalDerivative11(orient::angleAxisFromQuaternion, q);
-  Eigen::Matrix<double, 3, 4> calc;
-  orient::angleAxisFromQuaternion(q, calc);
-  CHECK( calc.isApprox( num, 1e-9) );
+  const auto [v, J] = orient::angleAxisFromQuaternionWD(q);
+  CHECK( v.isApprox( orient::angleAxisFromQuaternion(q)) );
+  CHECK( J.isApprox( num, 1e-9) );
 }

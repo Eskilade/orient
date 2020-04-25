@@ -37,10 +37,10 @@ TEST_CASE("rotationMatrixFromAngleAxis_derivative")
     aa = Eigen::Vector3d::Random();
   }
 
-  Eigen::Matrix<double, 9, 3> calc;
-  orient::rotationMatrixFromAngleAxis(aa, calc);
+  const auto [v, J] = orient::rotationMatrixFromAngleAxisWD(aa);
   auto numeric = gtsam::numericalDerivative11(orient::rotationMatrixFromAngleAxis, aa);
-  CHECK( calc.isApprox(numeric, 1e-10) );
+  CHECK( v.isApprox(orient::rotationMatrixFromAngleAxis(aa)) );
+  CHECK( J.isApprox(numeric, 1e-10) );
 }
 
 TEST_CASE("quaternionFromAngleAxis")
@@ -134,13 +134,8 @@ TEST_CASE("quaternionFromAngleAxis_derivative")
     aa *= -2*M_PI / std::sqrt(aa.dot(aa));
   }
 
-  Eigen::Matrix<double, 4, 3> calc;
-  orient::quaternionFromAngleAxis(aa, calc);
+  const auto [v, J] = orient::quaternionFromAngleAxisWD(aa);
   auto numeric = gtsam::numericalDerivative11(orient::quaternionFromAngleAxis, aa);
-  CHECK( calc.isApprox(numeric, 1e-10) );
-  if( not calc.isApprox(numeric, 1e-10) ){
-    std::cout << numeric << "\n\n";
-    std::cout << calc << "\n\n";
-    std::cout << numeric - calc << "\n\n";
-  }
+  CHECK( v.isApprox(orient::quaternionFromAngleAxis(aa) ) );
+  CHECK( J.isApprox(numeric, 1e-10) );
 }
