@@ -18,10 +18,10 @@ Eigen::Matrix3d rotationMatrixFromAngleAxis(Eigen::Vector3d const& aa)
 
 std::pair<Eigen::Matrix3d, Eigen::Matrix<double, 9, 3>> rotationMatrixFromAngleAxisWD(Eigen::Vector3d const& aa)
 {
-  const auto [skew, skewHaa] = detail::skewSymmetricWPD(aa);
+  const auto [skew, skewJaa] = detail::skewSymmetricWPD(aa);
   const auto angle2 = aa.dot(aa);
   if (angle2 < std::numeric_limits<double>::epsilon()) {
-    return std::make_pair(Eigen::Matrix3d::Identity(), skewHaa);
+    return std::make_pair(Eigen::Matrix3d::Identity(), skewJaa);
   }
   const auto angle = std::sqrt(angle2);
   const auto s = std::sin(angle);
@@ -30,21 +30,21 @@ std::pair<Eigen::Matrix3d, Eigen::Matrix<double, 9, 3>> rotationMatrixFromAngleA
   Eigen::Map<const Eigen::Matrix<double, 9, 1>> vecI{I.data(), I.size()};
 
   const auto k1 = s / angle;
-  const Eigen::Matrix<double, 1, 3> k1Haa = (angle*c - s) * aa.transpose() / (angle2*angle);
+  const Eigen::Matrix<double, 1, 3> k1Jaa = (angle*c - s) * aa.transpose() / (angle2*angle);
 
   const auto k2 = (1. - c) / angle2;
-  const Eigen::Matrix<double, 1, 3> k2Haa = (angle*s - 2.*(1.-c)) * aa.transpose() / (angle2*angle2);
+  const Eigen::Matrix<double, 1, 3> k2Jaa = (angle*s - 2.*(1.-c)) * aa.transpose() / (angle2*angle2);
 
   const Eigen::Matrix3d term1 = k1 * skew;
-  const Eigen::Matrix<double, 9, 3> term1Haa = k1 * skewHaa - detail::kroneckerProduct(skew, I)*vecI*k1Haa;
+  const Eigen::Matrix<double, 9, 3> term1Jaa = k1 * skewJaa - detail::kroneckerProduct(skew, I)*vecI*k1Jaa;
 
   const Eigen::Matrix3d skew2 = skew*skew;
-  const Eigen::Matrix<double, 9, 3> skew2Haa = (detail::kroneckerProduct(I, skew) + Eigen::kroneckerProduct(skew.transpose(), I)) * skewHaa;
+  const Eigen::Matrix<double, 9, 3> skew2Jaa = (detail::kroneckerProduct(I, skew) + Eigen::kroneckerProduct(skew.transpose(), I)) * skewJaa;
 
   const Eigen::Matrix3d term2 = k2 * skew2;
-  const Eigen::Matrix<double, 9, 3> term2Haa = k2 * skew2Haa + detail::kroneckerProduct(skew2, I)*vecI*k2Haa;
+  const Eigen::Matrix<double, 9, 3> term2Jaa = k2 * skew2Jaa + detail::kroneckerProduct(skew2, I)*vecI*k2Jaa;
 
-  return std::make_pair(I + term1 + term2, term1Haa + term2Haa);
+  return std::make_pair(I + term1 + term2, term1Jaa + term2Jaa);
 }
 
 Eigen::Vector4d quaternionFromAngleAxis(Eigen::Vector3d const& aa)
@@ -67,18 +67,18 @@ std::pair<Eigen::Vector4d, Eigen::Matrix<double, 4, 3>> quaternionFromAngleAxisW
   const auto angle2 = aa.dot(aa);
   if( angle2 < 1e-10){
     const auto w = 1 - angle2/8;
-    const auto wHaa = -0.25 * aa.transpose();
+    const auto wJaa = -0.25 * aa.transpose();
 
     const auto k = (0.5 - angle2/48.);
-    const auto kHaa = - (1./24.) *  aa.transpose();
+    const auto kJaa = - (1./24.) *  aa.transpose();
 
     const auto v = k*aa;
-    const auto vHaa = aa * kHaa + k * Eigen::Matrix3d::Identity();
+    const auto vJaa = aa * kJaa + k * Eigen::Matrix3d::Identity();
 
-    Eigen::Matrix<double, 4, 3> H;
-    H.block<1,3>(0,0) = wHaa;
-    H.block<3,3>(1,0) = vHaa;
-    return std::make_pair((Eigen::Vector4d() << w, v).finished(), H);
+    Eigen::Matrix<double, 4, 3> J;
+    J.block<1,3>(0,0) = wJaa;
+    J.block<3,3>(1,0) = vJaa;
+    return std::make_pair((Eigen::Vector4d() << w, v).finished(), J);
   }
   const auto angle = std::sqrt(angle2);
   const auto ha = angle/2.0;
@@ -86,19 +86,19 @@ std::pair<Eigen::Vector4d, Eigen::Matrix<double, 4, 3>> quaternionFromAngleAxisW
   const auto sha = std::sin(ha);
 
   const auto w = cha;
-  const auto wHaa = - sha * aa.transpose() / (2. * angle);
+  const auto wJaa = - sha * aa.transpose() / (2. * angle);
 
   const auto k = sha / angle;
-  const Eigen::Matrix<double, 1, 3> kHaa = (angle * cha - 2*sha) * aa.transpose() / (2*angle2*angle);
+  const Eigen::Matrix<double, 1, 3> kJaa = (angle * cha - 2*sha) * aa.transpose() / (2*angle2*angle);
    
   const Eigen::Vector3d v = k * aa;
-  const Eigen::Matrix3d vHaa = aa * kHaa + k * Eigen::Matrix3d::Identity();
+  const Eigen::Matrix3d vJaa = aa * kJaa + k * Eigen::Matrix3d::Identity();
 
-  Eigen::Matrix<double, 4, 3> H;
-  H.block<1,3>(0,0) = wHaa;
-  H.block<3,3>(1,0) = vHaa;
+  Eigen::Matrix<double, 4, 3> J;
+  J.block<1,3>(0,0) = wJaa;
+  J.block<3,3>(1,0) = vJaa;
 
-  return std::make_pair((Eigen::Vector4d() << w, v).finished(), H);
+  return std::make_pair((Eigen::Vector4d() << w, v).finished(), J);
 }
 
 }

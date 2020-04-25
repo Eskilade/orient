@@ -64,32 +64,32 @@ template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isTaitBryan_v<A1,A2
 std::pair<Eigen::Vector3d, Eigen::Matrix<double, 3, 9>> eulerFromRotationMatrixWD(Eigen::Matrix3d const& R)
 {
   using T = detail::TaitBryanTraits<A1,A2,A3>;
-  Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
+  Eigen::Matrix<double, 3, 9> J = Eigen::Matrix<double, 3, 9>::Zero();
   const auto& sign = T::sign_matrix;
   const auto lone_v = R(T::a2s);
   const auto thres = 1.0 - std::numeric_limits<float>::epsilon();
   double a1,a2,a3;
   if( lone_v < thres ){
     if( lone_v > - thres ){
-      std::tie(a2, H(1, T::a2s)) = detail::asinWD( sign(T::a2s) * R(T::a2s) );
-      H(1, T::a2s) *= sign(T::a2s);
+      std::tie(a2, J(1, T::a2s)) = detail::asinWD( sign(T::a2s) * R(T::a2s) );
+      J(1, T::a2s) *= sign(T::a2s);
 
-      std::tie(a1, H(0, T::a1s), H(0, T::a1c)) = 
+      std::tie(a1, J(0, T::a1s), J(0, T::a1c)) = 
         detail::atan2WD(sign(T::a1s) * R(T::a1s), sign(T::a1c) * R(T::a1c));
-      H(0, T::a1s) *= sign(T::a1s);
-      H(0, T::a1c) *= sign(T::a1c);
+      J(0, T::a1s) *= sign(T::a1s);
+      J(0, T::a1c) *= sign(T::a1c);
 
-      std::tie(a3, H(2, T::a3s), H(2, T::a3c)) =
+      std::tie(a3, J(2, T::a3s), J(2, T::a3c)) =
         detail::atan2WD(sign(T::a3s)*R(T::a3s), sign(T::a3c)*R(T::a3c));
-      H(2, T::a3s) *= sign(T::a3s);
-      H(2, T::a3c) *= sign(T::a3c);
+      J(2, T::a3s) *= sign(T::a3s);
+      J(2, T::a3c) *= sign(T::a3c);
     } 
     else { // Gimbal lock. lone value ~= -1
       using TGL = typename T::GimbalLock;
       a2 =  - sign(T::a2s) * M_PI / 2.0;
       a1 =  - std::atan2( sign(TGL::a1s) * R(TGL::a1s), sign(TGL::a1c) * R(TGL::a1c) );
       a3 = 0.;
-      H = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
+      J = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
     }
   }
   else { // Gimbal lock. lone value ~= +1
@@ -97,9 +97,9 @@ std::pair<Eigen::Vector3d, Eigen::Matrix<double, 3, 9>> eulerFromRotationMatrixW
     a2 =  sign(T::a2s) * M_PI / 2.0;
     a1 =  std::atan2( sign(TGL::a1s) * R(TGL::a1s), sign(TGL::a1c) * R(TGL::a1c) );
     a3 = 0.;
-    H = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
+    J = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
   }
-  return std::make_pair((Eigen::Vector3d() << a1,a2,a3).finished(), H);
+  return std::make_pair((Eigen::Vector3d() << a1,a2,a3).finished(), J);
 }
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isProperEuler_v<A1,A2,A3>, int> >
@@ -136,31 +136,31 @@ template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isProperEuler_v<A1,
 std::pair<Eigen::Vector3d, Eigen::Matrix<double, 3, 9>> eulerFromRotationMatrixWD(Eigen::Matrix3d const& R)
 {
   using T = detail::ProperEulerTraits<A1,A2>; 
-  Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
+  Eigen::Matrix<double, 3, 9> J = Eigen::Matrix<double, 3, 9>::Zero();
   const auto& sign = T::sign_matrix;
   const auto lone_v = R(T::a2c);
   const auto thres = 1.0 - std::numeric_limits<float>::epsilon();
   double a1,a2,a3;
   if( lone_v < thres ){
     if( lone_v > - thres ){
-      std::tie(a2, H(1, T::a2c)) =
+      std::tie(a2, J(1, T::a2c)) =
         detail::acosWD( sign(T::a2c) * R(T::a2c) );
-      H(1, T::a2c) *= sign(T::a2c);
+      J(1, T::a2c) *= sign(T::a2c);
 
-      std::tie(a1, H(0, T::a1s), H(0, T::a1c)) =
+      std::tie(a1, J(0, T::a1s), J(0, T::a1c)) =
         detail::atan2WD(R(T::a1s), sign(T::a1c)*R(T::a1c));
-      H(0, T::a1c) *= sign(T::a1c);
+      J(0, T::a1c) *= sign(T::a1c);
 
-      std::tie(a3, H(2, T::a3s), H(2, T::a3c)) =
+      std::tie(a3, J(2, T::a3s), J(2, T::a3c)) =
         detail::atan2WD(R(T::a3s), sign(T::a3c) * R(T::a3c));
-      H(2, T::a3c) *= sign(T::a3c);
+      J(2, T::a3c) *= sign(T::a3c);
     } 
     else { // Gimbal lock. lone value ~= -1
       using TGL = typename T::GimbalLock;
       a2 = M_PI;
       a1 = - std::atan2( sign(TGL::a1s) * R(TGL::a1s), sign(TGL::a1c) * R(TGL::a1c) );
       a3 = 0.;
-      H = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
+      J = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
     }
   }
   else { // Gimbal lock. lone value ~= +1
@@ -168,9 +168,9 @@ std::pair<Eigen::Vector3d, Eigen::Matrix<double, 3, 9>> eulerFromRotationMatrixW
     a2 = 0.0;
     a1 = std::atan2( sign(TGL::a1s) * R(TGL::a1s), sign(TGL::a1c) * R(TGL::a1c) );
     a3 = 0.;
-    H = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
+    J = Eigen::Matrix<double, 3, 9>::Constant(std::nan(""));
   }
-  return std::make_pair((Eigen::Vector3d() << a1,a2,a3).finished(), H);
+  return std::make_pair((Eigen::Vector3d() << a1,a2,a3).finished(), J);
 }
 
 template<Axis A1, Axis A2, Axis A3, std::enable_if_t<detail::isMalformed_v<A1,A2,A3>, int> >

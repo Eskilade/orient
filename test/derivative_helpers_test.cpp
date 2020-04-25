@@ -14,18 +14,18 @@ TEST_CASE("asin")
 {
   auto x = 0.3;
   auto num = gtsam::numericalDerivative11<double, double>(WRAP(std::asin), x);
-  const auto [angle, angleHx] = orient::detail::asinWD(x);
+  const auto [angle, angleJx] = orient::detail::asinWD(x);
   CHECK( angle == Approx(std::asin(x)) );
-  CHECK( angleHx == Approx(num(0)) ); 
+  CHECK( angleJx == Approx(num(0)) ); 
 }
 
 TEST_CASE("acos")
 {
   auto x = 0.3;
   auto num = gtsam::numericalDerivative11<double, double>(WRAP(std::acos), x);
-  const auto [angle, angleHx] = orient::detail::acosWD(x);
+  const auto [angle, angleJx] = orient::detail::acosWD(x);
   CHECK( angle == Approx(std::acos(x)) );
-  CHECK( angleHx == Approx(num(0)) );
+  CHECK( angleJx == Approx(num(0)) );
 }
 
 TEST_CASE("atan2")
@@ -33,12 +33,12 @@ TEST_CASE("atan2")
   auto x = 0.3;
   auto y = 0.9;
   Eigen::Matrix<double, 1, 1> calc1, calc2;
-  auto num_Hy = gtsam::numericalDerivative21<double, double, double>(WRAP(std::atan2), y, x);
-  auto num_Hx = gtsam::numericalDerivative22<double, double, double>(WRAP(std::atan2), y, x);
-  const auto [angle, Hy, Hx] = orient::detail::atan2WD(y, x);
+  auto num_Jy = gtsam::numericalDerivative21<double, double, double>(WRAP(std::atan2), y, x);
+  auto num_Jx = gtsam::numericalDerivative22<double, double, double>(WRAP(std::atan2), y, x);
+  const auto [angle, Jy, Jx] = orient::detail::atan2WD(y, x);
   CHECK(angle == Approx( std::atan2(y,x) ));
-  CHECK( Hy == Approx(num_Hy(0)) ); 
-  CHECK( Hx == Approx(num_Hx(0)) ); 
+  CHECK( Jy == Approx(num_Jy(0)) ); 
+  CHECK( Jx == Approx(num_Jx(0)) ); 
 }
 
 TEST_CASE("transpose")

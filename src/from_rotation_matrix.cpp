@@ -34,32 +34,32 @@ Eigen::Vector3d angleAxisFromRotationMatrix(Eigen::Matrix3d const& R)
 
 std::pair<Eigen::Vector3d, Eigen::Matrix<double, 3, 9>> angleAxisFromRotationMatrixWD(Eigen::Matrix3d const& R)
 {
-  const auto [tr, trHR] = detail::traceWD(R);
+  const auto [tr, trJR] = detail::traceWD(R);
   if( detail::isAlmostEq(tr, 3.0) ){
-    const auto [ev, evHR] = detail::unskewSymmetricWPD(R);
-    return std::make_pair(ev, evHR);
+    const auto [ev, evJR] = detail::unskewSymmetricWPD(R);
+    return std::make_pair(ev, evJR);
   }
   const auto x = 0.5*(tr - 1.0);
 
-  const auto [angle, angleHx] = detail::acosWD(x);
+  const auto [angle, angleJx] = detail::acosWD(x);
 
   const auto sin = std::sin(angle);
 
   const auto k3 = 0.5*angle/sin;
-  const auto k3Hangle = 0.5*(1. - angle/std::tan(angle))/sin;
+  const auto k3Jangle = 0.5*(1. - angle/std::tan(angle))/sin;
 
-  const auto [Rt, RtHR] = detail::transposeWD(R);
+  const auto [Rt, RtJR] = detail::transposeWD(R);
   const Eigen::Matrix3d eR = R - Rt;
-  const Eigen::Matrix<double, 9, 9> eRHR = Eigen::Matrix<double, 9, 9>::Identity() - RtHR;
+  const Eigen::Matrix<double, 9, 9> eRJR = Eigen::Matrix<double, 9, 9>::Identity() - RtJR;
 
-  const auto [ev, evHeR] = detail::unskewSymmetricWPD(eR);
+  const auto [ev, evJeR] = detail::unskewSymmetricWPD(eR);
 
   const Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
   Eigen::Map<const Eigen::Matrix<double, 9, 1>> vecI{I.data(), I.size()};
 
-  const Eigen::Matrix<double, 3, 9> H = detail::kroneckerProduct(ev.transpose(), I) * vecI *k3Hangle * angleHx * trHR / 2.
-    + k3 * evHeR * eRHR;
-   return std::make_pair(k3 * ev, H);
+  const Eigen::Matrix<double, 3, 9> J = detail::kroneckerProduct(ev.transpose(), I) * vecI *k3Jangle * angleJx * trJR / 2.
+    + k3 * evJeR * eRJR;
+   return std::make_pair(k3 * ev, J);
 }
 
 Eigen::Vector4d quaternionFromRotationMatrix(Eigen::Matrix3d const& R)
@@ -79,31 +79,31 @@ Eigen::Vector4d quaternionFromRotationMatrix(Eigen::Matrix3d const& R)
 
 std::pair<Eigen::Vector4d, Eigen::Matrix<double, 4, 9>> quaternionFromRotationMatrixWD(Eigen::Matrix3d const& R)
 {
-  const auto [tr, trHR] = detail::traceWD(R);
+  const auto [tr, trJR] = detail::traceWD(R);
 
   const auto w = 0.5*std::sqrt(tr + 1.0);
-  Eigen::Matrix<double, 1 , 9> wHR = 0.25/std::sqrt(tr+1) * trHR;
+  Eigen::Matrix<double, 1 , 9> wJR = 0.25/std::sqrt(tr+1) * trJR;
 
   const auto k4 = 0.25/w;
-  const auto k4Hw = - k4/w;
+  const auto k4Jw = - k4/w;
  
-  const auto [Rt, RtHR] = detail::transposeWD(R);
+  const auto [Rt, RtJR] = detail::transposeWD(R);
   const Eigen::Matrix3d eR = R - Rt;
-  const Eigen::Matrix<double, 9, 9> eRHR = Eigen::Matrix<double, 9, 9>::Identity() - RtHR;
+  const Eigen::Matrix<double, 9, 9> eRJR = Eigen::Matrix<double, 9, 9>::Identity() - RtJR;
 
-  const auto [ev, evHeR] = detail::unskewSymmetricWPD(eR);
+  const auto [ev, evJeR] = detail::unskewSymmetricWPD(eR);
 
   const Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
   Eigen::Map<const Eigen::Matrix<double, 9, 1>> vecI{I.data(), I.size()};
 
   const Eigen::Vector3d v = 0.25*detail::unskewSymmetric(R - R.transpose()) / w;
-  Eigen::Matrix<double, 3 , 9> vHR = detail::kroneckerProduct(ev.transpose(), I) * vecI *k4Hw * wHR 
-    + k4 * evHeR * eRHR;
+  Eigen::Matrix<double, 3 , 9> vJR = detail::kroneckerProduct(ev.transpose(), I) * vecI *k4Jw * wJR 
+    + k4 * evJeR * eRJR;
 
-  Eigen::Matrix<double, 4, 9> H;
-  H.block<1,9>(0,0) = wHR;
-  H.block<3,9>(1,0) = vHR;
-  return std::make_pair((Eigen::Vector4d() << w, v).finished(), H);
+  Eigen::Matrix<double, 4, 9> J;
+  J.block<1,9>(0,0) = wJR;
+  J.block<3,9>(1,0) = vJR;
+  return std::make_pair((Eigen::Vector4d() << w, v).finished(), J);
 }
 
 }
