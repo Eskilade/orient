@@ -32,12 +32,12 @@
     SECTION("Random"){\
       angle = 0.2;\
     }\
-    Eigen::Matrix3d H;\
-    orient::rotationMatrixFromEuler<orient::Axis::a1>(angle, H);\
+    const auto [v, J] = orient::rotationMatrixFromEulerWD<orient::Axis::a1>(angle);\
     /* TODO: Investigate why a wrapper is needed here.
      * an unresolved overloaded function type error */\
     auto numeric = gtsam::numericalDerivative11<Eigen::Matrix3d, double>(WRAP(orient::rotationMatrixFromEuler<orient::Axis::a1>), angle);\
-    CHECK( H.isApprox(Eigen::Map<Eigen::Matrix3d>(numeric.data(), 3,3), 1e-10) );\
+    CHECK( v.isApprox(orient::rotationMatrixFromEuler<orient::Axis::a1>(angle)) );\
+    CHECK( J.isApprox(Eigen::Map<Eigen::Matrix3d>(numeric.data(), 3,3), 1e-10) );\
   }\
 
 #define MAKE_TEST_FULL(a1, a2, a3) \
@@ -69,11 +69,11 @@
     SECTION("Random"){\
       aa = Eigen::Vector3d::Random();\
     }\
-    Eigen::Matrix<double, 9, 3> H;\
-    orient::rotationMatrixFromEuler<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>(aa, H);\
+    const auto [v, J] = orient::rotationMatrixFromEulerWD<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>(aa);\
     const auto numeric = gtsam::numericalDerivative11(\
                           orient::rotationMatrixFromEuler<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>, aa);\
-    CHECK( H.isApprox(numeric, 1e-10) );\
+    CHECK( v.isApprox(orient::rotationMatrixFromEuler<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>(aa)) );\
+    CHECK( J.isApprox(numeric, 1e-10) );\
   }\
 
 MAKE_TEST_SINGLE(x)

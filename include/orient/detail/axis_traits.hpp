@@ -5,9 +5,6 @@
 
 namespace orient::detail {
 
-template<Axis A>
-constexpr auto asIndex = static_cast<std::underlying_type_t<Axis>>(A);
-
 template<Axis a1, Axis a2>
 constexpr Axis missing_v = Axis{3 - asIndex<a1> - asIndex<a2>};
 
