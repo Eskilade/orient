@@ -1,8 +1,9 @@
 #include <catch/catch2.hpp>
 
-#include <orient/detail/trigonometric_derivatives.hpp>
+#include <orient/detail/derivative_helpers.hpp>
 
 #include <gtsam/base/numericalDerivative.h>
+#include <iostream>
 
 #define WRAP(f) \
   [&] (auto&&... args) -> decltype(auto) \
@@ -38,4 +39,22 @@ TEST_CASE("atan2")
   CHECK(angle == Approx( std::atan2(y,x) ));
   CHECK( Hy == Approx(num_Hy(0)) ); 
   CHECK( Hx == Approx(num_Hx(0)) ); 
+}
+
+TEST_CASE("transpose")
+{
+  const Eigen::Matrix3d M = Eigen::Matrix3d::Random();
+  auto num = gtsam::numericalDerivative11<Eigen::Matrix3d, Eigen::Matrix3d>([](auto&& M){return M.transpose();}, M);
+  const auto [v, J] = orient::detail::transposeWD(M);
+  CHECK( v.isApprox(M.transpose()) );
+  CHECK( J.isApprox(num, 1e-10) );
+}
+
+TEST_CASE("trace")
+{
+  const Eigen::Matrix3d M = Eigen::Matrix3d::Random();
+  auto num = gtsam::numericalDerivative11<double, Eigen::Matrix3d>([](auto&& M){return M.trace();}, M);
+  const auto [v, J] = orient::detail::traceWD(M);
+  CHECK( v == Approx(M.trace()) );
+  CHECK( J.isApprox(num, 1e-10) );
 }

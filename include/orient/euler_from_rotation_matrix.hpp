@@ -24,7 +24,7 @@ std::pair<Eigen::Vector3d, Eigen::Matrix<double, 3, 9>> eulerFromRotationMatrixW
 }
  
 /* imp */ 
-#include <orient/detail/trigonometric_derivatives.hpp>
+#include <orient/detail/derivative_helpers.hpp>
 #include <orient/detail/skew_symmetric.hpp>
 
 

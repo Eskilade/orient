@@ -24,6 +24,6 @@ add_test(test_test
   test/from_quaternion_test.cpp src/from_quaternion.cpp
   test/from_angle_axis_test.cpp src/from_angle_axis.cpp
   test/from_rotation_matrix_test.cpp src/from_rotation_matrix.cpp
-  test/trigonometry_test.cpp
+  test/derivative_helpers_test.cpp
   test/from_euler_test.cpp)
 
