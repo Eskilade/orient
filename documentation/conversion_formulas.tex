@@ -5,8 +5,10 @@
 \usepackage{bm}
 \usepackage[margin=1in]{geometry}
 \usepackage{parskip}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
-\usepackage[backend=biber,style=alphabetic,sorting=ynt,bibencoding=utf8]{biblatex}
+\usepackage[backend=biber,style=numeric,sorting=ynt,bibencoding=utf8]{biblatex}
 \addbibresource{sources.bib}
 
 \renewcommand\aa{\bm{\theta}}
@@ -28,143 +30,69 @@
 \title{Overview of 3D orientation transformations with Jacobians}
 \author{Christian V. Berg}
 \maketitle
-
 \date
 
-\begin{abstract}
-The abstract text goes here.
-\end{abstract}
+Many of the following transformations are functions of matricies. Since we are
+also interested in their first order derivative, we need an efficient way
+of ordering their partial derivates. In the following derivations, we use the
+\textit{Magnus-Neudecker} layout convention as presented in
+\cite{magnus_matrix_1985}. A practical introduction can be found in
+\cite{fackler_notes_2005}. We will be using the product rule in particular: Given 
+functions $f(X):\Real^{n \times m} \to \Real^{p \times q}$ and
+$g(X):\Real^{n \times m} \to \Real^{q \times k}$ then
+\begin{align}
+  \frac{\partial \vecop{f(X) g(X)}}{\partial \vecop{X}} =
+    \left(g(X)^T \otimes \bm{I}_k \right) \frac{\partial \vecop{f(X)}}{\partial \vecop{X}}
+    + \left(\bm{I}_p \otimes f(X) \right) \frac{\partial \vecop{g(X)}}{\partial \vecop{X}}
+\end{align}
+
+where $\otimes$ is the Kronecker product. You will also find some references to the Lie group $SO(3)$ and its exponential map.
+Though Lie theory is not needed to understand what follows, an excellent introduction
+to the topic and its applications in robotics can be found in \cite{sola_micro_2019}.
+
 
 \tableofcontents
-\section{Symbols and notations}
 
+\section{Notations}
+\subsection{Symbols}
 \begin{tabular}{l p{15cm}}
   $\t \in \Real$ & Angle \\
-  $\R \in SO(3)$ & Rotation matrix \\
   $\aa \in \Real^3$ & Axis-angle such that $\aa = \t \, \u$, $\t \in \Real$ and a unit vector $\u \in S^2$ \\
   $\q \in S^3$ & Unit quaternion such that $\q = \begin{bmatrix} w \\ \v \end{bmatrix}$ \\
+  $\R \in SO(3)$ & Rotation matrix \\
   $\I \in \Real^{3\times3}$ & Identity matrix \\
   $\bm{0} \in \Real^{3}$ & Zero vector \\
+  $\bm{1} \in \Real^{3}$ & Vector of ones \\
+   $e_i \in \Real^3$ & $i^{th}$ standard orthonormal base vector of $\Real^3$, i.e.
+     $e_1=\begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix},
+     e_2 =\begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix},
+       e_3 =\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}$ \\ [10pt] \\
+   $E_i = \skew{e_i}\in \Real^{3 \times 3}$ & $i^{th}$ generator of $SO(3)$ \\ [10pt] \\
+\end{tabular}
+
+\subsection{Operators}
+\begin{tabular}{l p{15cm}}
   $ (.)^T : \Real^{m \times n} \to \Real^{n \times m}$ & Matrix transpose \\
   $tr(.) : \Real^{n \times n} \to \Real$ & Matrix trace \\
-  $\skew{.} : \Real^3 \to  \Real^{3\times 3}$ & Skew symmetric matrix operator such that \newline
+  $\skew{.} : \Real^3 \to  \Real^{3\times 3}$ & Skew symmetric matrix operator such that
   $\begin{bmatrix} x \\ y \\ z \end{bmatrix}_\times =
   \begin{bmatrix}
     0& - z & y \\ 
     z & 0 & -x \\
     -y & x & 0
-  \end{bmatrix}$ \\
+  \end{bmatrix}$ \\ [10pt] \\
   $(.)^\vee : \Real^{3 \times 3} \to \Real^{3}$ & Vee operator such that
   $\begin{bmatrix}
     a_1& - z & y \\ 
     z & a_2 & -x \\
     -y & x & a_3
   \end{bmatrix}^\vee = \begin{bmatrix} x \\ y \\ z \end{bmatrix}$ \newline Notice that $\left(\skew{\bm{d}}\right)^\vee = \bm{d}$ \\
-    $\vecop{.} : \Real^{m \times n} \to \Real^{m\,n}$ & Vectorization operator of a matrix such that \newline
+    $\vecop{.} : \Real^{m \times n} \to \Real^{m\,n}$ & Vectorization operator of a matrix such that
    $\vecop{\begin{bmatrix}
     a_1 & a_3 \\ 
     a_2 & a_4
-    \end{bmatrix}} = \begin{bmatrix} a_1 & a_2 & a_3 & a_4 \end{bmatrix}^T$ \\ [10pt]
-  $E_i \in \Real^{3 \times 3}$ & $i^{th}$ generator of $SO(3)$, such that \newline
-    $E_x = 
-    \begin{bmatrix}
-      0 & 0 & 0 \\ 
-      0 & 0 & -1\\ 
-      0 & 1 & 0
-    \end{bmatrix}
-    E_y = 
-    \begin{bmatrix}
-      0 & 0 & 1 \\ 
-      0 & 0 & 0\\ 
-      -1& 0 & 0
-    \end{bmatrix}
-    E_z = 
-    \begin{bmatrix}
-      0 & -1& 0 \\ 
-      1 & 0 & 0 \\ 
-      0 & 0 & 0
-    \end{bmatrix}$\\ [10pt] \\
+    \end{bmatrix}} = \begin{bmatrix} a_1 \\ a_2 \\ a_3 \\ a_4 \end{bmatrix}$ \\ [10pt] \\
 \end{tabular}
-
-I will use the notaion used in \cite{claraco_tutorial_nodate} for expressions
-involving derivatives of matricies. For instance,
-given functions $f : \Real^2 \to \Real^{2 \times 2}$ and $f_i : \Real^2 \to \Real$ such that 
-\begin{align}
-  f(\bm{p}) = f \left( \begin{bmatrix} x \\ y \end{bmatrix} \right) = \begin{bmatrix} f_1(x,y) & f_3(x,y) \\ f_2(x,y) & f_4(x,y) \end{bmatrix}
-\end{align}
-then 
-\begin{align}
-  \frac{\partial f(\bm{p})}{\partial \bm{p}} = \frac{\partial \vecop{f(\bm{p})}}{\partial \bm{p}} 
-  &= \begin{bmatrix} 
-      \frac{\partial \vecop{f(\bm{p})}}{\partial x} & 
-      \frac{\partial \vecop{f(\bm{p})}}{\partial y}
-    \end{bmatrix}
-  = \begin{bmatrix} 
-    \frac{\partial f_1(x,y)}{\partial x} & \frac{\partial f_1(x,y)}{\partial y}   \\[10pt]
-      \frac{\partial f_2(x,y)}{\partial x} & \frac{\partial f_2(x,y)}{\partial y} \\[10pt]
-      \frac{\partial f_3(x,y)}{\partial x} & \frac{\partial f_3(x,y)}{\partial y} \\[10pt]
-      \frac{\partial f_3(x,y)}{\partial x} & \frac{\partial f_4(x,y)}{\partial y}
-     \end{bmatrix}
-\end{align}
-
-Similarly, given functions $g : \Real^{2 \times 2} \to \Real^2$ and  $g_i : \Real^{2 \times 2} \to \Real$ such that 
-\begin{align}
-  g(M) = f \left( \begin{bmatrix} a_1 & a_3 \\ a_2 & a_4 \end{bmatrix}\right) = \begin{bmatrix} g_1(M) \\ g_2(M) \end{bmatrix}
-\end{align}
-then 
-\begin{align}
-  \frac{\partial g(M)}{\partial M} = \frac{\partial g(M)}{\partial \vecop{M}}
-  &= \begin{bmatrix} 
-      \frac{\partial g_1(M)}{\partial \vecop{M}} \\[5pt]
-      \frac{\partial g_2(M)}{\partial \vecop{M}}
-     \end{bmatrix}
-  = \begin{bmatrix} 
-      \frac{\partial g_1(M)}{\partial a_1} & \frac{\partial g_1(x,y)}{\partial a_2} &
-      \frac{\partial g_1(M)}{\partial a_3} & \frac{\partial g_1(x,y)}{\partial a_4}\\[5pt]
-      \frac{\partial g_2(M)}{\partial a_1} & \frac{\partial g_2(x,y)}{\partial a_2} &
-      \frac{\partial g_2(M)}{\partial a_3} & \frac{\partial g_2(x,y)}{\partial a_4}
-     \end{bmatrix}
-\end{align}
-
-Unless explicitly stated otherwise, the derivative of a matrix by a scalar remains the same as in normal matrix calculus, i.e. given functions $h : \Real \to \Real^{2 \times 2}$ and  $h_i : \Real \to \Real$ such that 
-\begin{align}
-  h(x) = \begin{bmatrix} h_1(x) & h_3(x) \\ h_2(x) & h_4(x) \end{bmatrix}
-\end{align}
-then 
-\begin{align}
-  \frac{\partial f(x)}{\partial x} =
-    \begin{bmatrix} 
-      \frac{\partial h_1(x)}{\partial x} & \frac{\partial h_3(x)}{\partial x} \\[10pt]
-      \frac{\partial h_2(x)}{\partial x} & \frac{\partial h_4(x)}{\partial x}
-     \end{bmatrix}
-\end{align}
-
-Similarly, and unless explicitly stated otherwise, the derivative of a scalar by a matrix remains the same as in normal matrix calculus, i.e. given a function $t : \Real^{2 \times 2} \to \Real$, then
-\begin{align}
-  \frac{\partial t(M)}{\partial M} =
-    t \left( \begin{bmatrix} 
-      a_1 & a_3 \\
-      a_2 & a_4
-    \end{bmatrix} \right)= 
-    \begin{bmatrix} 
-      \frac{\partial t(M)}{\partial a_1} & \frac{\partial t(M)}{\partial a_3} \\[10pt]
-      \frac{\partial t(M)}{\partial a_2} & \frac{\partial t(M)}{\partial a_4}
-     \end{bmatrix}
-\end{align}
-
-Finally, notice that 
-\begin{align}
-  \frac{\partial f(\bm{p})}{\partial \bm{p}}
-  &= \begin{bmatrix} 
-      \vecop{\frac{\partial f(\bm{p})}{\partial x}} & 
-      \vecop{\frac{\partial f(\bm{p})}{\partial y}}
-    \end{bmatrix}\\
-  \frac{\partial g(M)}{\partial M} 
-  &= \begin{bmatrix} 
-      \vecop{\frac{\partial g_1(M)}{\partial M}}^T \\[5pt]
-      \vecop{\frac{\partial g_2(M)}{\partial M}}^T
-     \end{bmatrix}
-\end{align}
 
 \section{Rotation matrix and axis-angle}
 \subsection{Rotation matrix from axis-angle}
@@ -189,17 +117,17 @@ Since the expression is fairly long, we will define 2 intermediate functions:
 
 For both functions, we have
 \begin{align}
-  \frac{\partial k(\t)}{\partial \aa} &= 
-    \frac{\partial k(\t)}{\partial \t} \frac{\t}{\partial \aa} =
-    \frac{\partial k(\t)}{\partial \t} \frac{\sqrt{\aa^T\aa}}{\partial \aa} =
-    \frac{\partial k(\t)}{\partial \t} \frac{\aa^T}{\t}
+  \frac{\partial k_i(\t)}{\partial \aa} &= 
+    \frac{\partial k_i(\t)}{\partial \t} \frac{\t}{\partial \aa} =
+    \frac{\partial k_i(\t)}{\partial \t} \frac{\sqrt{\aa^T\aa}}{\partial \aa} =
+    \frac{\partial k_i(\t)}{\partial \t} \frac{\aa^T}{\t}
 \end{align}
 
 Using the Kronecker product $\otimes$, it then follows
 \begin{align}
   \frac{\partial \vecop{k_1(\t) \skew{\aa}}}{\partial \aa}  
   &= \left( \I \otimes k_1(\t)\I \right) \frac{\partial \vecop{\skew{\aa}}}{\partial \aa}
-    + \left(\skew{\aa}^T \otimes \I \right) \frac{\partial \vecop{k_1{\t}\I}}{\partial \aa} \\
+    + \left(\skew{\aa}^T \otimes \I \right) \frac{\partial \vecop{k_1(\t)\;\I}}{\partial \aa} \\
   &= k_1(\t) \frac{\partial \vecop{\skew{\aa}}}{\partial \aa}
     - \left(\skew{\aa} \otimes \I \right) \vecop{\I} \frac{\partial k_1(\t)}{\partial \t} \frac{\aa^T}{\t}
 \end{align}
@@ -208,7 +136,7 @@ where we used $\skew{.}^T = - \skew{.}$. Next, we also have
 \begin{align}
   \frac{\partial \vecop{k_2(\t) \skew{\aa}^2}}{\partial \aa}  
   &= \left( \I \otimes k_2(\t)\I \right) \frac{\partial \vecop{\skew{\aa}^2}}{\partial \aa}
-    + \left({\skew{\aa}^2}^T \otimes \I \right) \frac{\partial \vecop{k_2{\t}\I}}{\partial \aa} \\
+    + \left({\skew{\aa}^2}^T \otimes \I \right) \frac{\partial \vecop{k_2(\t)\;\I}}{\partial \aa} \\
   &= k_2(\t) \frac{\partial \vecop{\skew{\aa}^2}}{\partial \aa}
     + \left({\skew{\aa}^2} \otimes \I \right) \vecop{\I} \frac{\partial k_2(\t)}{\partial \t} \frac{\aa^T}{\t}
 \end{align}
@@ -289,12 +217,9 @@ relative "sign-ness" of each element.
   \;,\; i = argmax \;\; diag \left( \frac{\R + \I }{2} \right)
 \end{align}
 
-So finally
+Finally
 \begin{align}
-  \aa = \pm \pi
-    \frac{col_i \left[ \frac{\R + \I}{2} \right] }
-         {\sqrt{diag_i \left[ \frac{\R + \I }{2} \right] }}
-  \;,\; i = argmax \;\; diag \left( \frac{\R + \I }{2} \right)
+  \aa = \pm \pi \u
 \end{align}
 
 \subsection{Axis-angle from rotation matrix Jacobian}
@@ -334,6 +259,7 @@ When $\t = 0 \iff tr(\R) = 3$, then
 
 \section{Rotation matrix and quaternion}
 \subsection{Rotation matrix from quaternion}
+Assuming unit quaternions, we have
 \begin{align}
   \R = \I + 2 \; w \; \skew{\v} + 2\; \skew{\v}^2
 \end{align}
@@ -448,13 +374,13 @@ Using $y=\sqrt{\v^T\v}$
   \aa = 2 \frac{\arctantwo \left(y, w \right)}{y} \v 
 \end{align}
 
-When $w$ approach $1$ from the left $\iff \t$ close to $0$, we can reuse the second order Taylor approximation from before to deduce
+When $w$ approaches $1$ from the left $\iff \t$ close to $0$, we can reuse the second order Taylor approximation from before to deduce
 \begin{align}
   \aa \approx \frac{6\v}{w+2}
 \end{align}
 
 \subsection{Axis-angle from quaternion Jacobian}
-Once again we define an intermediate function
+We define an intermediate function
 \begin{align}
   k_5(y,x) &= 2 \frac{\arctantwo \left(y, w \right)}{y} \\
   \frac{\partial k_5(y,x)}{\partial x} &= \frac{-2}{y^2 + w^2} = -2 \\
@@ -482,6 +408,143 @@ and finally
       \frac{\partial \aa}{\partial w} &
       \frac{\partial \aa}{\partial \v}
     \end{bmatrix}
+\end{align}
+
+\section{Euler angles and rotation matrix}
+
+This section is largely based on \cite{eberly_euler_nodate}, which details how
+one can retrieve the euler angles of a given sequence of rotation from a rotation matrix.
+
+The following subsection presents the psudocode to retrieve the wanted euler angles, but 
+unlike \cite{eberly_euler_nodate}, the psudocode is generalized for the order of rotation.
+
+We define
+
+\begin{tabular}{l p{15cm}}
+  $\R_i(\t_k)$ & The rotation matrix about the axis $e_i$ by an angle $\t_k$ \\
+  $s_k$ & Sine of the angle $\t_k$, i.e. $s_k = \sin \t_k$\\
+  $c_k$ & Cosine of the angle $\t_k$, i.e. $c_k = \cos \t_k$\\
+  $M$ & The "sign" matrix used to correct the sign of the sine and cosine element of the rotation matrix \\
+\end{tabular}
+
+Using this, a rotation matrix can be written as $\R = \R_a(\t_1) \; \R_b(\t_2) \; \R_c(\t_3)$.
+For example, the sequences of rotation \textit{z-y-x} by angles $(\t_3, \t_2, \t_1)$ is written
+$\R = \R_1(\t_1) \; \R_2(\t_2) \; \R_3(\t_3)$.
+
+
+A particular matrix element is denoted by a lower case letter and the indicies in subscript, i.e.
+\begin{align}
+  \R = \begin{bmatrix} 
+    r_{1,1} & r_{1,2} & r_{1,3} \\
+    r_{2,1} & r_{2,2} & r_{2,3} \\
+    r_{3,1} & r_{3,2} & r_{3,3}
+  \end{bmatrix} \text{       }
+\end{align}
+
+The both algorithms rely on a sign matrix given by
+\begin{align}
+  M = \begin{bmatrix} 
+    m_{1,1} & m_{1,2} & m_{1,3} \\
+    m_{2,1} & m_{2,2} & m_{2,3} \\
+    m_{3,1} & m_{3,2} & m_{3,3}
+  \end{bmatrix} 
+  = \begin{bmatrix} 
+    1 & -1 & 1 \\
+    1 & 1 & -1 \\
+    -1 & 1 & 1
+  \end{bmatrix} = 
+  \I + \skew{\bm{1}}
+\end{align}
+
+\subsection{Tait-Bryan angles from rotation matrix}
+
+\begin{algorithm}[H]
+\begin{algorithmic}[1]
+\Function{ToTaitBryan}{$\R,a,b,c$}\Comment{Corresponds to the rotation sequence $e_c-e_b-e_a$}
+  \State $M = \I + \skew{\bm{1}}$\Comment{Sign matrix}
+  \State $s_2 = r_{a,c}$
+  \If{$s_2 < +1$}
+    \If{$s_2 > -1$}
+      \State $\t_2 = \arcsin(m_{a,c} \; s2)$
+      \State $\t_1 = \arctantwo(m_{b,c} \; r_{b,c}, m_{c,c} \; r_{c,c})$
+      \State $\t_3 = \arctantwo(m_{a,b} \; r_{a,b}, m_{a,a} \; r_{a,a})$
+    \Else\Comment{Gimbal lock: $s_2 = -1$}
+      \State $\t_2 = - m_{a,c} \; \frac{\pi}{2}$
+      \State $\t_1 = \arctantwo(m_{b,a} \; r_{b,a}, m_{b,b} \; r_{b,b})$
+      \State $\t_3 = 0$
+    \EndIf
+  \Else\Comment{Gimbal lock: $s_2 = 1$}
+    \State $\t_2 = m_{a,c} \; \frac{\pi}{2}$
+    \State $\t_1 = \arctantwo(m_{b,a} \; r_{b,a}, m_{b,b} \; r_{b,b})$
+    \State $\t_3 = 0$
+  \EndIf
+  \State \textbf{return} $\t_1, \t_2, \t_3$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Proper Euler angles from rotation matrix}
+
+\begin{algorithm}[H]
+\begin{algorithmic}[1]
+  \Function{ToProperEuler}{$\R,a,b$}\Comment{Corresponds to the rotation sequence $e_a-e_b-e_a'$}
+  \State $M = \I + \skew{\bm{1}}$\Comment{Sign matrix}
+  \State $c = 6 - a -b$\Comment{$c$ is the "unused" axis}
+  \State $c_2 = r_{a,a}$
+  \If{$c_2 < +1$}
+    \If{$c_2 > -1$}
+      \State $\t_2 = \arccos(m_{a,a} \; c2)$
+      \State $\t_1 = \arctantwo(m_{b,a} \; r_{b,a}, m_{c,a} \; r_{c,a})$
+      \State $\t_3 = \arctantwo(m_{a,b} \; r_{a,b}, m_{a,c} \; r_{a,c})$
+    \Else\Comment{Gimbal lock: $c_2 = -1$}
+      \State $\t_2 = \pi$
+      \State $\t_1 = - \arctantwo(m_{b,c} \; r_{b,c}, m_{b,b} \; r_{b,b})$
+      \State $\t_3 = 0$
+    \EndIf
+  \Else\Comment{Gimbal lock: $c_2 = 1$}
+    \State $\t_2 = 0$
+    \State $\t_1 = \arctantwo(m_{b,c} \; r_{b,c}, m_{b,b} \; r_{b,b})$
+    \State $\t_3 = 0$
+  \EndIf
+  \State \textbf{return} $\t_1, \t_2, \t_3$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\newpage
+
+\section{Common matrix derivatives}
+
+Using $e'_i$ as $i^{th}$ standard orthonormal base vector of $\Real^9$, then
+
+\begin{align}
+  \forall X \in \Real^{3 \times 3} \;\; \text{ then } \;\; \frac{\partial \vecop{X^T}}{\partial \vecop{X}}
+  = \begin{bmatrix} e'_1 &   e'_4 &   e'_7 &   e'_2 &   e'_5 &   e'_8 &   e'_3 &   e'_6 &   e'_9  \end{bmatrix} = J_T
+\end{align}
+
+\begin{align}
+  \forall X \in \Real^{n \times n} \;\; \text{ then } \;\; \frac{\partial \vecop{tr(X)}}{\partial \vecop{X}}
+  = \vecop{\I_n}
+\end{align}
+
+\begin{align}
+  \forall \bm{v} \in \Real^{3} \;\; \text{ then } \;\; \frac{\partial \skew{\bm{v}}}{\partial \bm{v}}
+  = \begin{bmatrix} \vecop{E_1} &  \vecop{E_2} & \vecop{E_3} \end{bmatrix} = J_\times
+\end{align}
+
+\begin{align}
+  \forall X \in \Real^{3 \times 3} \;\; \text{ then } \;\; \frac{\partial X^\vee}{\partial \vecop{X}} =
+  \begin{bmatrix}
+    0 & 0 & 0 & 0 & 0 & 0 & 0 & -1 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
+    0 & 0 & 0 & 0 & -1 & 0 & 0 & 0 & 0
+  \end{bmatrix} = J_\vee
+\end{align}
+
+\begin{align}
+  \forall X \in \Real^{3 \times 3} \;\; \text{ then } \;\; \frac{\partial (X - X^T)^\vee}{\partial \vecop{X}}
+  = \frac{\partial (X - X^T)^\vee}{\partial \vecop{X - X^T}}
+  \frac{\partial \vecop{X - X^T}}{\partial \vecop{X}} = J_\vee \; (\I_9 - J_T)
 \end{align}
 
 
