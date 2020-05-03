@@ -1,6 +1,6 @@
 #pragma once
 
-#include <EigenUnsupported/KroneckerProduct>
+#include <unsupported/Eigen/KroneckerProduct>
 
 namespace orient::detail {
 
