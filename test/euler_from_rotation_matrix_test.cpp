@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include <catch/catch2.hpp>
 
-#include <orient/euler_from_rotation_matrix.hpp>
+#include <orient/from_rotation_matrix.hpp>
 
 #include <gtsam/base/numericalDerivative.h>
 #include <gtsam/geometry/Rot3.h>
