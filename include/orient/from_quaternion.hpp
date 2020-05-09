@@ -5,11 +5,18 @@
 #include <Eigen/Dense>
 
 namespace orient {
+template<typename Scalar>
+Eigen::Matrix<Scalar, 3, 3> rotationMatrixFromQuaternion(Eigen::Matrix<Scalar, 4, 1> const& q);
 
-Eigen::Matrix3d rotationMatrixFromQuaternion(Eigen::Vector4d const& q);
-std::pair<Eigen::Matrix3d, Eigen::Matrix<double, 9, 4>> rotationMatrixFromQuaternionWD(Eigen::Vector4d const& q);
+template<typename Scalar>
+std::pair<Eigen::Matrix<Scalar, 3, 3>, Eigen::Matrix<Scalar, 9, 4>> rotationMatrixFromQuaternionWD(Eigen::Matrix<Scalar, 4, 1> const& q);
 
-Eigen::Vector3d angleAxisFromQuaternion(Eigen::Vector4d const& q);
-std::pair<Eigen::Vector3d, Eigen::Matrix<double, 3, 4>> angleAxisFromQuaternionWD(Eigen::Vector4d const& q);
+template<typename Scalar>
+Eigen::Matrix<Scalar, 3, 1> angleAxisFromQuaternion(Eigen::Matrix<Scalar, 4, 1> const& q);
+
+template<typename Scalar>
+std::pair<Eigen::Matrix<Scalar, 3, 1>, Eigen::Matrix<Scalar, 3, 4>> angleAxisFromQuaternionWD(Eigen::Matrix<Scalar, 4, 1> const& q);
 
 }
+
+#include <orient/impl/from_quaternion.hpp>
