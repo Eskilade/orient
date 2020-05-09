@@ -8,7 +8,6 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(
   test_orient 
   src/from_quaternion.cpp
-  src/from_angle_axis.cpp
   src/from_rotation_matrix.cpp
   test/from_quaternion_test.cpp 
   test/from_angle_axis_test.cpp

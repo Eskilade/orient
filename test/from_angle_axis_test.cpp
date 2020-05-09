@@ -38,7 +38,7 @@ TEST_CASE("rotationMatrixFromAngleAxis_derivative")
   }
 
   const auto [v, J] = orient::rotationMatrixFromAngleAxisWD(aa);
-  auto numeric = gtsam::numericalDerivative11(orient::rotationMatrixFromAngleAxis, aa);
+  auto numeric = gtsam::numericalDerivative11(orient::rotationMatrixFromAngleAxis<double>, aa);
   CHECK( v.isApprox(orient::rotationMatrixFromAngleAxis(aa)) );
   CHECK( J.isApprox(numeric, 1e-10) );
 }
@@ -135,7 +135,7 @@ TEST_CASE("quaternionFromAngleAxis_derivative")
   }
 
   const auto [v, J] = orient::quaternionFromAngleAxisWD(aa);
-  auto numeric = gtsam::numericalDerivative11(orient::quaternionFromAngleAxis, aa);
+  auto numeric = gtsam::numericalDerivative11(orient::quaternionFromAngleAxis<double>, aa);
   CHECK( v.isApprox(orient::quaternionFromAngleAxis(aa) ) );
   CHECK( J.isApprox(numeric, 1e-10) );
 }
