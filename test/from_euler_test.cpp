@@ -5,10 +5,6 @@
 #include <gtsam/base/numericalDerivative.h>
 #include <gtsam/geometry/Rot3.h>
 
-#define WRAP(f) \
-  [&] (auto&&... args) -> decltype(auto) \
-  { return f (std::forward<decltype(args)>(args)...); }
-
 #define MAKE_TEST_SINGLE(a1) \
   TEST_CASE(#a1)\
   {\
@@ -35,7 +31,7 @@
     const auto [v, J] = orient::rotationMatrixFromEulerWD<orient::Axis::a1>(angle);\
     /* TODO: Investigate why a wrapper is needed here.
      * an unresolved overloaded function type error */\
-    auto numeric = gtsam::numericalDerivative11<Eigen::Matrix3d, double>(WRAP(orient::rotationMatrixFromEuler<orient::Axis::a1>), angle);\
+    auto numeric = gtsam::numericalDerivative11<Eigen::Matrix3d, double>(orient::rotationMatrixFromEuler<orient::Axis::a1, double>, angle);\
     CHECK( v.isApprox(orient::rotationMatrixFromEuler<orient::Axis::a1>(angle)) );\
     CHECK( J.isApprox(Eigen::Map<Eigen::Matrix3d>(numeric.data(), 3,3), 1e-10) );\
   }\
@@ -71,7 +67,7 @@
     }\
     const auto [v, J] = orient::rotationMatrixFromEulerWD<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>(aa);\
     const auto numeric = gtsam::numericalDerivative11(\
-                          orient::rotationMatrixFromEuler<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>, aa);\
+                          orient::rotationMatrixFromEuler<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3, double>, aa);\
     CHECK( v.isApprox(orient::rotationMatrixFromEuler<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>(aa)) );\
     CHECK( J.isApprox(numeric, 1e-10) );\
   }\
