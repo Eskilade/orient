@@ -3,8 +3,8 @@
 namespace orient::detail {
 
 
-template<typename T>
-typename std::enable_if<std::is_floating_point_v<T>, bool>::type isAlmostEq(T a, T b, T epsilon = T{1e-10})
+template<typename Scalar>
+bool isAlmostEq(Scalar a, Scalar b, Scalar epsilon = Scalar{1e-10})
 {
   return std::abs(a-b) < epsilon;
 }
