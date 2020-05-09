@@ -69,7 +69,7 @@ Eigen::Matrix3d ToGtsamRotationMatrix(Eigen::Vector3d const& v)
       aa = Eigen::Vector3d::Random();\
     }\
     Eigen::Matrix3d R = ToGtsamRotationMatrix<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>(aa);\
-    auto num = gtsam::numericalDerivative11(orient::eulerFromRotationMatrix<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>, R);\
+    auto num = gtsam::numericalDerivative11(orient::eulerFromRotationMatrix<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3, double>, R);\
     const auto [v, J] = orient::eulerFromRotationMatrixWD<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>(R);\
     CHECK( v.isApprox(orient::eulerFromRotationMatrix<orient::Axis::a1, orient::Axis::a2, orient::Axis::a3>(R)) );\
     CHECK( J.isApprox(num, 1e-6) );\

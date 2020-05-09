@@ -156,7 +156,7 @@ TEST_CASE("angleAxisFromRotationMatrix_derivative")
   Eigen::Matrix3d R = gtsam::Rot3::Rodrigues(aa).matrix();
 
   const auto [v, J] = orient::angleAxisFromRotationMatrixWD(R);
-  auto num = gtsam::numericalDerivative11(orient::angleAxisFromRotationMatrix, R);
+  auto num = gtsam::numericalDerivative11(orient::angleAxisFromRotationMatrix<double>, R);
   CHECK( v.isApprox(orient::angleAxisFromRotationMatrix(R)) );
   CHECK( J.isApprox(num, 1e-8) );
 }
@@ -184,7 +184,7 @@ TEST_CASE("quaternionFromRotationMatrix_derivative")
   Eigen::Matrix3d R = gtsam::Rot3::Rodrigues(aa).matrix();
 
   const auto [v, J] = orient::quaternionFromRotationMatrixWD(R);
-  auto num = gtsam::numericalDerivative11(orient::quaternionFromRotationMatrix, R);
+  auto num = gtsam::numericalDerivative11(orient::quaternionFromRotationMatrix<double>, R);
   CHECK( v.isApprox(orient::quaternionFromRotationMatrix(R)) );
   CHECK( J.isApprox(num, 1e-10) );
 }
