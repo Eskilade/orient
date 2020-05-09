@@ -5,7 +5,7 @@
 
 namespace orient {
 
-template<Axis A1, Axis A2, Axis A3, typename Scalar,std::enable_if_t<detail::isTaitBryan_v<A1,A2,A3>, int>>
+template<Axis A1, Axis A2, Axis A3, typename Scalar,std::enable_if_t<detail::isTaitBryan_v<A1,A2,A3>, int> = 0>
 Eigen::Matrix<Scalar,3,1> eulerFromRotationMatrix(Eigen::Matrix<Scalar,3,3> const& R)
 {
   using T = detail::TaitBryanTraits<A1,A2,A3>;
@@ -35,7 +35,7 @@ Eigen::Matrix<Scalar,3,1> eulerFromRotationMatrix(Eigen::Matrix<Scalar,3,3> cons
   return (Eigen::Matrix<Scalar,3,1>() << a1,a2,a3).finished();
 }
 
-template<Axis A1, Axis A2, Axis A3, typename Scalar, std::enable_if_t<detail::isTaitBryan_v<A1,A2,A3>, int>>
+template<Axis A1, Axis A2, Axis A3, typename Scalar, std::enable_if_t<detail::isTaitBryan_v<A1,A2,A3>, int> = 0>
 std::pair<Eigen::Matrix<Scalar,3,1>, Eigen::Matrix<Scalar, 3, 9>> eulerFromRotationMatrixWD(Eigen::Matrix<Scalar,3,3> const& R)
 {
   using T = detail::TaitBryanTraits<A1,A2,A3>;
@@ -77,7 +77,7 @@ std::pair<Eigen::Matrix<Scalar,3,1>, Eigen::Matrix<Scalar, 3, 9>> eulerFromRotat
   return std::make_pair((Eigen::Matrix<Scalar,3,1>() << a1,a2,a3).finished(), J);
 }
 
-template<Axis A1, Axis A2, Axis A3, typename Scalar, std::enable_if_t<detail::isProperEuler_v<A1,A2,A3>, int>>
+template<Axis A1, Axis A2, Axis A3, typename Scalar, std::enable_if_t<detail::isProperEuler_v<A1,A2,A3>, int> = 0>
 Eigen::Matrix<Scalar,3,1> eulerFromRotationMatrix(Eigen::Matrix<Scalar,3,3> const& R)
 {
   using T = detail::ProperEulerTraits<A1,A2>; 
@@ -107,7 +107,7 @@ Eigen::Matrix<Scalar,3,1> eulerFromRotationMatrix(Eigen::Matrix<Scalar,3,3> cons
   return (Eigen::Matrix<Scalar,3,1>() << a1,a2,a3).finished();
 }
 
-template<Axis A1, Axis A2, Axis A3, typename Scalar, std::enable_if_t<detail::isProperEuler_v<A1,A2,A3>, int>>
+template<Axis A1, Axis A2, Axis A3, typename Scalar, std::enable_if_t<detail::isProperEuler_v<A1,A2,A3>, int> = 0>
 std::pair<Eigen::Matrix<Scalar,3,1>, Eigen::Matrix<Scalar, 3, 9>> eulerFromRotationMatrixWD(Eigen::Matrix<Scalar,3,3> const& R)
 {
   using T = detail::ProperEulerTraits<A1,A2>; 
@@ -148,14 +148,14 @@ std::pair<Eigen::Matrix<Scalar,3,1>, Eigen::Matrix<Scalar, 3, 9>> eulerFromRotat
   return std::make_pair((Eigen::Matrix<Scalar,3,1>() << a1,a2,a3).finished(), J);
 }
 
-template<Axis A1, Axis A2, Axis A3, typename Scalar, std::enable_if_t<detail::isMalformed_v<A1,A2,A3>, int> >
+template<Axis A1, Axis A2, Axis A3, typename Scalar, std::enable_if_t<detail::isMalformed_v<A1,A2,A3>, int> = 0>
 void eulerFromRotationMatrix(Eigen::Matrix<Scalar,3,3> const&)
 {
   constexpr bool alwaysFalse = ( A1 != A1);
   static_assert( alwaysFalse, "Passed a malformed rotation sequence. Please choose either a propor euler sequence or a Tait-Bryan sequence");
 }
 
-template<Axis A1, Axis A2, Axis A3, typename Scalar, std::enable_if_t<detail::isMalformed_v<A1,A2,A3>, int> >
+template<Axis A1, Axis A2, Axis A3, typename Scalar, std::enable_if_t<detail::isMalformed_v<A1,A2,A3>, int> = 0>
 void eulerFromRotationMatrixWD(Eigen::Matrix<Scalar,3,3> const& arg)
 {
   // Reuse same compilation error message

@@ -22,16 +22,10 @@ Eigen::Matrix<Scalar,4,1> quaternionFromRotationMatrix(Eigen::Matrix<Scalar,3,3>
 template<typename Scalar>
 std::pair<Eigen::Matrix<Scalar,4,1>, Eigen::Matrix<Scalar, 4, 9>> quaternionFromRotationMatrixWD(Eigen::Matrix<Scalar,3,3> const& R);
 
-template<Axis A1, Axis A2, Axis A3, typename Scalar,std::enable_if_t<detail::isTaitBryan_v<A1,A2,A3>, int> = 0>
+template<Axis A1, Axis A2, Axis A3, typename Scalar, typename Dummy>
 Eigen::Matrix<Scalar,3,1> eulerFromRotationMatrix(Eigen::Matrix<Scalar,3,3> const& R);
 
-template<Axis A1, Axis A2, Axis A3, typename Scalar, std::enable_if_t<detail::isTaitBryan_v<A1,A2,A3>, int> = 0>
-std::pair<Eigen::Matrix<Scalar,3,1>, Eigen::Matrix<Scalar, 3, 9>> eulerFromRotationMatrixWD(Eigen::Matrix<Scalar,3,3> const& R);
-
-template<Axis A1, Axis A2, Axis A3, typename Scalar, std::enable_if_t<detail::isProperEuler_v<A1,A2,A3>, int> = 0>
-Eigen::Matrix<Scalar,3,1> eulerFromRotationMatrix(Eigen::Matrix<Scalar,3,3> const& R);
-
-template<Axis A1, Axis A2, Axis A3, typename Scalar, std::enable_if_t<detail::isProperEuler_v<A1,A2,A3>, int> = 0>
+template<Axis A1, Axis A2, Axis A3, typename Scalar, typename Dummy>
 std::pair<Eigen::Matrix<Scalar,3,1>, Eigen::Matrix<Scalar, 3, 9>> eulerFromRotationMatrixWD(Eigen::Matrix<Scalar,3,3> const& R);
 
 }
