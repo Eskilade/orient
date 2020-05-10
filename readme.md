@@ -1,8 +1,8 @@
 # orient
 
-orient is a C++ library that implements transformations between 3D orientation representations with their first order partial derivatives (aka. Jacobians). The following direct transformations with Jacobians are implemented:
+orient is a C++ header-only library that implements transformations between 3D orientation representations with their first order partial derivatives (aka. Jacobians). The following direct transformations with Jacobians are implemented:
 ```
-AA <--> NQ
+AA ----- UQ
    \   /
     \ /
      R
@@ -13,11 +13,11 @@ AA <--> NQ
 
 where
  * AA : Angle axis
- * NQ : Normalized quaternion
+ * UQ : Unit quaternion
  * R : Rotation matrix
- * Euler : Any euler angle sequence
+ * Euler : Any Euler angle sequence
 
-Note: One euler sequence can be transformed to another euler sequence by using
+Note: One Euler sequence can be transformed to another Euler sequence by using
 a rotation matrix as intermediate 
 
 The remaining transformation can be constructed from the direct transformations as in the example below.
@@ -26,30 +26,34 @@ The remaining transformation can be constructed from the direct transformations 
 
 ```cpp
 #include <orient/from_angle_axis.hpp>
-#include <orient/euler_from_rotation_matrix.hpp>
+#include <orient/from_rotation_matrix.hpp>
 
 int main()
 {
-  // Goal: get roll, pitch, yaw and covariances
-  Eigen::Vector3d aa = Eigen::Vector3d::Random();                  // given some random angle axis
-  Eigen::Matrix3d aa_cov = Eigen::Vector3d::Random().asDiagonal(); // with associated covariance matrix
+  // Goal: get roll, pitch, yaw with covariances
+  // ... from an angle axis
+  Eigen::Vector3d aa = Eigen::Vector3d::Random();
+  // ... with associated covariance matrix
+  Eigen::Matrix3d aa_cov = 0.1*(Eigen::Vector3d()<<1,2,3).finished().asDiagonal(); 
 
-  // First: get rotation matrix with partial derivative
+  // First: get rotation matrix with partial derivatives
   const auto [R, RJaa] = orient::rotationMatrixFromAngleAxisWD(aa);
 
-  // Second: get roll, pitch and yaw with partial derivate
+  // Second: get roll, pitch and yaw with partial derivates
   using Axis = orient::Axis;
   const auto [ypr, yprJR] = orient::eulerFromRotationMatrixWD<Axis::z, Axis::y, Axis::x>(R);
 
   // Construct complete jacobian 
-  const auto yprJaa = yprJR * RJaa;
+  const Eigen::Matrix3d yprJaa = yprJR * RJaa;
 
   // ... and propagate uncertainty
-  const auto ypr_cov = yprJaa * aa_cov * yprJaa.transpose();
+  const Eigen::Matrix3d ypr_cov = yprJaa * aa_cov * yprJaa.transpose();
 
   return 0;
 }
 ```
+## How to install
+ * Clone library then `mkdir orient/build && cd orient/build && cmake .. && sudo make install`
 
 ## Prerequisites
 
