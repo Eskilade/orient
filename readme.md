@@ -77,7 +77,8 @@ int main()
   // First: get rotation matrix with partial derivatives
   const auto [R, RJaa] = orient::rotationMatrixFromAngleAxisWD(aa);
 
-  // Second: get roll, pitch and yaw with partial derivates
+  // Second: get roll, pitch and yaw with partial derivates.
+  // Rotation sequence is given in intrinsic rotations
   using Axis = orient::Axis;
   const auto [ypr, yprJR] = orient::eulerFromRotationMatrixWD<Axis::z, Axis::y, Axis::x>(R);
 
