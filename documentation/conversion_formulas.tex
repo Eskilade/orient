@@ -413,10 +413,10 @@ and finally
 \section{Euler angles and rotation matrix}
 
 This section is largely based on \cite{eberly_euler_nodate}, which details how
-one can retrieve the euler angles of a given sequence of rotation from a rotation matrix.
+one can retrieve the Euler angles of a given sequence of rotation from a rotation matrix.
 
-The following subsection presents the psudocode to retrieve the wanted euler angles, but 
-unlike \cite{eberly_euler_nodate}, the psudocode is generalized for the order of rotation.
+The following subsection presents the pseudocode to retrieve the wanted Euler angles, but 
+unlike \cite{eberly_euler_nodate}, the pseudocode is generalized for the intrinsic order of rotation.
 
 We define
 
@@ -428,9 +428,8 @@ We define
 \end{tabular}
 
 Using this, a rotation matrix can be written as $\R = \R_a(\t_1) \; \R_b(\t_2) \; \R_c(\t_3)$.
-For example, the sequences of rotation \textit{z-y-x} by angles $(\t_3, \t_2, \t_1)$ is written
-$\R = \R_1(\t_1) \; \R_2(\t_2) \; \R_3(\t_3)$.
-
+For example, the intrinsic sequences of rotation \textit{x-y-z} by angles $(\t_x, \t_y, \t_z)$ is written
+$\R = \R_1(\t_x) \; \R_2(\t_y) \; \R_3(\t_z)$.
 
 A particular matrix element is denoted by a lower case letter and the indicies in subscript, i.e.
 \begin{align}
@@ -460,7 +459,7 @@ The both algorithms rely on a sign matrix given by
 
 \begin{algorithm}[H]
 \begin{algorithmic}[1]
-\Function{ToTaitBryan}{$\R,a,b,c$}\Comment{Corresponds to the rotation sequence $e_c-e_b-e_a$}
+\Function{ToTaitBryan}{$\R,a,b,c$}\Comment{Corresponds to the intrinsic rotation sequence $e_a-e_b-e_c$}
   \State $M = \I + \skew{\bm{1}}$\Comment{Sign matrix}
   \State $s_2 = r_{a,c}$
   \If{$s_2 < +1$}
@@ -487,7 +486,7 @@ The both algorithms rely on a sign matrix given by
 
 \begin{algorithm}[H]
 \begin{algorithmic}[1]
-  \Function{ToProperEuler}{$\R,a,b$}\Comment{Corresponds to the rotation sequence $e_a-e_b-e_a'$}
+  \Function{ToProperEuler}{$\R,a,b$}\Comment{Corresponds to the intrinsic rotation sequence $e_a-e_b-e_a'$}
   \State $M = \I + \skew{\bm{1}}$\Comment{Sign matrix}
   \State $c = 6 - a -b$\Comment{$c$ is the "unused" axis}
   \State $c_2 = r_{a,a}$
