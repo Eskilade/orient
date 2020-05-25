@@ -25,7 +25,7 @@ A brief overview of the different transformations and the steps to finding the J
 transformation is given
 <a href="https://github.com/Eskilade/orient/blob/master/documentation/conversion_formulas.pdf" target="_blank">here</a>.
 
-## Applications to propagation of uncertainty
+## Application to propagation of uncertainty
 
 Managing uncertainties is often important to building robust real-world robot
 systems and are inherent to a probabilistic approach to robotics. In many of
