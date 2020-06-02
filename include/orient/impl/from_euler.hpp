@@ -55,21 +55,21 @@ std::pair<Eigen::Matrix<Scalar,3,3>, Eigen::Matrix<Scalar,3,3>> rotationMatrixFr
   return std::make_pair(R, J);
 }
 
-template<Axis a1, Axis a2, Axis a3, typename Scalar>
+template<Axis A1, Axis A2, Axis A3, typename Scalar>
 Eigen::Matrix<Scalar,3,3> rotationMatrixFromEuler(Eigen::Matrix<Scalar,3,1> const& angles)
 {
   return 
-    rotationMatrixFromEuler<a1>(angles[0]) *
-    rotationMatrixFromEuler<a2>(angles[1]) *
-    rotationMatrixFromEuler<a3>(angles[2]);
+    rotationMatrixFromEuler<A1>(angles[0]) *
+    rotationMatrixFromEuler<A2>(angles[1]) *
+    rotationMatrixFromEuler<A3>(angles[2]);
 }
 
-template<Axis a1, Axis a2, Axis a3, typename Scalar>
+template<Axis A1, Axis A2, Axis A3, typename Scalar>
 std::pair<Eigen::Matrix<Scalar,3,3>, Eigen::Matrix<Scalar, 9, 3>> rotationMatrixFromEulerWD(Eigen::Matrix<Scalar,3,1> const& angles)
 {
-  const auto [R1, J1] = rotationMatrixFromEulerWD<a1>(angles[0]);
-  const auto [R2, J2] = rotationMatrixFromEulerWD<a2>(angles[1]);
-  const auto [R3, J3] = rotationMatrixFromEulerWD<a3>(angles[2]);
+  const auto [R1, J1] = rotationMatrixFromEulerWD<A1>(angles[0]);
+  const auto [R2, J2] = rotationMatrixFromEulerWD<A2>(angles[1]);
+  const auto [R3, J3] = rotationMatrixFromEulerWD<A3>(angles[2]);
 
   Eigen::Matrix<Scalar, 9, 3> J;
   Eigen::Map<Eigen::Matrix<Scalar,3,3>>(J.template block<9,1>(0,0).data(), 3, 3) = J1 * R2 * R3;
