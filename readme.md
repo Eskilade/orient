@@ -38,17 +38,15 @@ order Taylor series as follows:
 
 Given some function _f_ and a random variable _X_ such that
 
-  <img src="https://render.githubusercontent.com/render/math?math=E[X]=\mu_X">
-  <img src="https://render.githubusercontent.com/render/math?math=Var(X)=\Sigma_X">
+  $$\displaylines{ E[X]=\mu_X \\\ Var(X)=\Sigma_X }$$
 
 then
 
-<img src="https://render.githubusercontent.com/render/math?math=E[f(X)]\approx f(\mu_X)">
-<img src="https://render.githubusercontent.com/render/math?math=Var(f(X))\approx J\, \Sigma_X \, J^T">
+  $$\displaylines{ E[f(X)]\approx f(\mu_X) \\\ Var(f(X))\approx J\ \Sigma_X \ J^T }$$
 
 where
 
-<img src="https://render.githubusercontent.com/render/math?math=J=\left. \frac{\partial f(X)}{\partial X}\right|_{X=\mu_X}"> 
+  $$J=\left. \frac{\partial f(X)}{\partial X}\right|_{X=\mu_X}$$
 
 is the partial derivative of the function evaluated at the mean of _X_. For
 more information on this subject, a good starting point is to have a look the
